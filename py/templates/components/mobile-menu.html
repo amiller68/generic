@@ -1,0 +1,110 @@
+{# Mobile Menu Component #}
+{% macro mobile_menu() %}
+<!-- Mobile menu button -->
+<button id="mobile-menu-toggle" class="sm:hidden uk-button uk-button-ghost uk-button-icon uk-button-small" aria-label="Toggle mobile menu">
+  <span class="relative block w-5 h-5">
+    <!-- Hamburger icon -->
+    <span class="js-hamburger-icon">
+      <span class="absolute left-0 top-0 h-0.5 w-5 bg-current transform transition-all duration-300 ease-in-out"></span>
+      <span class="absolute left-0 top-2 h-0.5 w-5 bg-current transition-all duration-300 ease-in-out"></span>
+      <span class="absolute left-0 top-4 h-0.5 w-5 bg-current transform transition-all duration-300 ease-in-out"></span>
+    </span>
+  </span>
+</button>
+
+<!-- Mobile menu dropdown -->
+<div id="mobile-menu" class="hidden absolute top-full right-0 w-64 bg-background border border-border rounded-lg shadow-lg mt-2 z-50">
+  <div class="p-4 space-y-2">
+    <!-- Navigation items would go here if there were any -->
+    
+    <!-- Theme switcher in mobile menu -->
+    <div class="pt-2 border-t border-border">
+      <div class="flex items-center justify-between py-2">
+        <span class="text-sm font-medium">Dark Mode</span>
+        <button id="mobile-theme-toggle" class="relative w-11 h-6 bg-muted rounded-full transition-colors duration-300" aria-label="Toggle dark mode">
+          <span class="absolute left-1 top-1 w-4 h-4 bg-background rounded-full shadow-sm transition-transform duration-300 js-mobile-theme-indicator"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Hamburger to X animation */
+  .mobile-menu-open .js-hamburger-icon span:first-child {
+    transform: rotate(45deg) translate(0.375rem, 0.375rem);
+  }
+  
+  .mobile-menu-open .js-hamburger-icon span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .mobile-menu-open .js-hamburger-icon span:last-child {
+    transform: rotate(-45deg) translate(0.375rem, -0.375rem);
+  }
+  
+  /* Theme toggle indicator */
+  .dark .js-mobile-theme-indicator {
+    transform: translateX(1.25rem);
+  }
+  
+  .dark #mobile-theme-toggle {
+    background-color: hsl(var(--primary));
+  }
+</style>
+
+<script>
+  (function() {
+    function initMobileMenu() {
+      const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+      const htmlElement = document.documentElement;
+      
+      if (mobileMenuToggle && mobileMenu) {
+        // Toggle mobile menu
+        mobileMenuToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          mobileMenu.classList.toggle('hidden');
+          mobileMenuToggle.classList.toggle('mobile-menu-open');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!mobileMenu.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+            mobileMenu.classList.add('hidden');
+            mobileMenuToggle.classList.remove('mobile-menu-open');
+          }
+        });
+        
+        // Theme toggle in mobile menu
+        if (mobileThemeToggle) {
+          mobileThemeToggle.addEventListener('click', function() {
+            const isDark = htmlElement.classList.contains('dark');
+            const frankenData = JSON.parse(localStorage.getItem('__FRANKEN__') || '{}');
+            
+            if (isDark) {
+              htmlElement.classList.remove('dark');
+              frankenData.mode = 'light';
+            } else {
+              htmlElement.classList.add('dark');
+              frankenData.mode = 'dark';
+            }
+            
+            localStorage.setItem('__FRANKEN__', JSON.stringify(frankenData));
+          });
+        }
+      }
+    }
+    
+    // Register with AppInit if available, otherwise run immediately when DOM is ready
+    if (window.AppInit && window.AppInit.register) {
+      window.AppInit.register(initMobileMenu);
+    } else if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMobileMenu);
+    } else {
+      initMobileMenu();
+    }
+  })();
+</script>
+{% endmacro %}

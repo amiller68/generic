@@ -1,11 +1,12 @@
 {% extends "layouts/base.html" %}
 {% from "components/theme-switcher.html" import theme_switcher_compact %}
+{% from "components/mobile-menu.html" import mobile_menu %}
 {% from "components/footer.html" import footer %}
 
 {% block body %}
 <!-- Navigation Header -->
-<header class="flex items-stretch w-full shadow-sm">
-  <div class="flex items-center w-48">
+<header class="relative flex items-stretch w-full shadow-sm">
+  <div class="flex items-center flex-shrink-0">
     <a href="/" class="flex items-center px-4 py-2 hover:bg-muted rounded-full mx-2 my-1" hx-get="/" hx-target="#content" hx-push-url="true">
       <img src="/static/icon.svg" alt="Icon" class="h-8 mr-2">
       <div class="flex flex-col">
@@ -18,13 +19,20 @@
     <!-- Empty nav for now -->
   </nav>
   
-  <div class="flex items-center gap-2 mr-4">
+  <!-- Desktop right section -->
+  <div class="hidden sm:flex items-center gap-2 mr-4">
     <!-- Dark mode toggle -->
     {{ theme_switcher_compact() }}
   </div>
   
-  <div class="flex items-stretch w-48">
+  <div class="hidden sm:flex items-stretch">
     <a href="/app/dashboard" class="bg-foreground text-background px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full mx-3 my-2">beta →</a>
+  </div>
+  
+  <!-- Mobile menu section -->
+  <div class="flex sm:hidden items-center gap-2 mx-4 relative">
+    <a href="/app/dashboard" class="bg-foreground text-background px-4 py-1 text-sm hover:opacity-90 flex items-center justify-center rounded-full">beta →</a>
+    {{ mobile_menu() }}
   </div>
 </header>
 
