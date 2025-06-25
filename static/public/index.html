@@ -21,26 +21,44 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        /* Ensure proper mobile menu styling */
+        @media (max-width: 48rem) {
+            #mobile-menu {
+                z-index: 50;
+            }
+        }
     </style>
 </head>
 <body class="bg-white text-black">
     <!-- Header -->
-    <header class="flex items-stretch w-full shadow-sm">
-        <div class="flex items-center w-48">
-            <a href="/" class="flex items-center px-4 py-2 hover:bg-gray-100 rounded-full mx-2 my-1">
+    <header class="relative w-full shadow-sm">
+        <div class="flex items-center justify-between px-4 py-2">
+            <!-- Logo -->
+            <a href="/" class="flex items-center hover:bg-gray-100 rounded-full px-2 py-1">
                 <img src="../assets/icons/icon.svg" alt="Generic Logo" class="h-8 mr-2">
                 <div class="flex flex-col">
                     <span class="font-black text-xl leading-none">Generic</span>
                 </div>
             </a>
+            
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex items-center space-x-4">
+                <a href="https://github.com/amiller68/generic" class="bg-black text-white px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full">GitHub →</a>
+            </nav>
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-lg hover:bg-gray-100">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
         </div>
         
-        <nav class="flex items-stretch flex-grow">
-            <!-- Empty nav for now -->
-        </nav>
-        
-        <div class="flex items-stretch w-48">
-            <a href="https://github.com/amiller68/generic" class="bg-black text-white px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full mx-3 my-2">GitHub →</a>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+            <nav class="flex flex-col p-4">
+                <a href="https://github.com/amiller68/generic" class="bg-black text-white px-6 py-3 hover:opacity-90 flex items-center justify-center rounded-full">GitHub →</a>
+            </nav>
         </div>
     </header>
 
@@ -329,6 +347,21 @@
                     behavior: 'smooth'
                 });
             });
+        });
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
         });
     </script>
 </body>
