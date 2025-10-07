@@ -21,12 +21,21 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        
+        /* Responsive button margins */
+        @media (max-width: 768px) {
+            .github-button {
+                margin: 0.25rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-white text-black">
     <!-- Header -->
-    <header class="flex items-stretch w-full shadow-sm">
-        <div class="flex items-center w-48">
+    <header class="relative flex items-stretch w-full shadow-sm">
+        <div class="flex items-center flex-shrink-0">
             <a href="/" class="flex items-center px-4 py-2 hover:bg-gray-100 rounded-full mx-2 my-1">
                 <img src="../assets/icons/icon.svg" alt="Generic Logo" class="h-8 mr-2">
                 <div class="flex flex-col">
@@ -39,8 +48,9 @@
             <!-- Empty nav for now -->
         </nav>
         
-        <div class="flex items-stretch w-48">
-            <a href="https://github.com/amiller68/generic" class="bg-black text-white px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full mx-3 my-2">GitHub →</a>
+        <!-- GitHub button -->
+        <div class="flex items-stretch">
+            <a href="https://github.com/amiller68/generic" class="github-button bg-black text-white px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full mx-3 my-2">GitHub →</a>
         </div>
     </header>
 
@@ -55,14 +65,14 @@
                     <p class="text-xl text-gray-600 mb-8">
                         Patterns for building full stack applications with type safety, rapid iteration, and owning the deployment pipeline.
                     </p>
-                    <div class="flex gap-4">
-                        <a href="#templates" class="bg-black text-white hover:opacity-90 px-6 py-3 rounded-full flex items-center gap-2 font-medium transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <a href="#templates" class="bg-black text-white hover:opacity-90 px-4 sm:px-6 py-3 rounded-full flex items-center justify-center gap-2 font-medium transition-all duration-200 shadow-lg hover:shadow-xl">
                             Explore Templates
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
                         </a>
-                        <a href="#what-you-get" class="bg-white text-black hover:bg-gray-100 border border-gray-300 px-6 py-3 rounded-full font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                        <a href="#what-you-get" class="bg-white text-black hover:bg-gray-100 border border-gray-300 px-4 sm:px-6 py-3 rounded-full font-medium transition-all duration-200 shadow-md hover:shadow-lg text-center">
                             What's included
                         </a>
                     </div>

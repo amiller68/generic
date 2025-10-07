@@ -4,9 +4,10 @@
 
 {% block body %}
 <!-- Navigation Header -->
-<header class="flex items-stretch w-full shadow-sm">
-  <div class="flex items-center w-48">
-    <a href="/" class="flex items-center px-4 py-2 hover:bg-muted rounded-full mx-2 my-1" hx-get="/" hx-target="#content" hx-push-url="true">
+<header class="flex items-center justify-between w-full shadow-sm px-4 py-2">
+  <!-- Logo -->
+  <div class="flex items-center">
+    <a href="/" class="flex items-center px-2 py-1 hover:bg-muted rounded-full" hx-get="/" hx-target="#content" hx-push-url="true">
       <img src="/static/icon.svg" alt="Icon" class="h-8 mr-2">
       <div class="flex flex-col">
         <span class="font-black text-xl leading-none">generic</span>
@@ -14,7 +15,8 @@
     </a>
   </div>
 
-  <nav class="flex items-stretch flex-grow">
+  <!-- Desktop Navigation -->
+  <nav class="hidden sm:flex items-center flex-grow justify-center">
     <!-- Empty nav for now -->
   </nav>
 
@@ -27,6 +29,32 @@
     <a href="/app/dashboard" class="bg-foreground text-background px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full mx-3 my-2">beta →</a>
   </div>
 </header>
+
+<!-- Mobile dropdown menu -->
+<div id="mobile-menu" class="absolute top-14 right-4 w-64 bg-background border rounded-lg shadow-lg p-4 hidden sm:hidden">
+  <div class="space-y-4">
+    <!-- Beta button -->
+    <a href="/app/dashboard" class="bg-foreground text-background px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full w-full">beta →</a>
+  </div>
+</div>
+
+<script>
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-menu');
+  menu.classList.toggle('hidden');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+  const menu = document.getElementById('mobile-menu');
+  const toggle = document.getElementById('mobile-menu-toggle');
+  
+  if (!menu.contains(event.target) && !toggle.contains(event.target) && !menu.classList.contains('hidden')) {
+    menu.classList.add('hidden');
+  }
+});
+</script>
+
 
 <!-- Main content area -->
 <main id="content">
