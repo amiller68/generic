@@ -5,7 +5,7 @@ COPY static/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy static files
 COPY static/public/ /usr/share/nginx/html/
-COPY branding/assets/ /usr/share/nginx/html/assets/
+COPY branding/assets/ /usr/share/nginx/html/assets/icons/
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
