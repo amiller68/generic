@@ -9,3 +9,6 @@ static/favicon.ico
 static/favicon.png
 static/icon.png
 static/icon.svg
+
+# Built styles (source is in ./styles/)
+static/css/main.css
