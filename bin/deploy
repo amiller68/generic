@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# Script to deploy multiple services in parallel using tmux
+
+set -o errexit
+set -o nounset
+
+# Points back to the project root
+export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+# Source utils and config
+source "$PROJECT_ROOT/bin/utils"
+source "$PROJECT_ROOT/bin/config"
+
+# Configuration
+SESSION_NAME="krondor-deploy"
+
+# Parse arguments
+SELECTED_SERVICES=()
+STAGE=""
+KILL_SESSION=false
+DEPLOY_COMMAND="deploy"
+
+# Get available services from config
+ALL_SERVICES=($(list_service_names))
+
+# Function to show usage
+usage() {
+    local service_names=$(list_service_names)
+
+    echo -e "${YELLOW}Parallel Deployment Tool${NC}"
+    echo ""
+    echo "Usage: $0 <stage> [options]"
+    echo ""
+    echo "Arguments:"
+    echo "  <stage>           Stage to deploy to (${STAGES})"
+    echo ""
+    echo "Options:"
+    for service in ${ALL_SERVICES[@]}; do
+        echo "  --${service}              Deploy only ${service} service"
+    done
+    echo "  -c, --command     Kamal command to run (default: deploy)"
+    echo "  -k, --kill        Kill existing deploy session"
+    echo "  -h, --help        Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 production                    Deploy all services to production"
+    echo "  $0 production --py               Deploy only py to production"
+    echo "  $0 production --command logs     Tail logs for all services"
+    echo "  $0 --kill                        Kill the deploy tmux session"
+    exit 0
+}
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --kill|-k)
+      KILL_SESSION=true
+      shift
+      ;;
+    --command|-c)
+      DEPLOY_COMMAND="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      ;;
+    --*)
+      # Check if it matches a service name
+      service_name="${1#--}"
+      if printf '%s\n' "${ALL_SERVICES[@]}" | grep -q "^${service_name}$"; then
+        SELECTED_SERVICES+=("$service_name")
+        shift
+      else
+        echo "Unknown option: $1"
+        echo "Use --help for usage information"
+        exit 1
+      fi
+      ;;
+    *)
+      # First positional argument is the stage
+      if [ -z "$STAGE" ]; then
+        STAGE="$1"
+        shift
+      else
+        echo "Unknown argument: $1"
+        echo "Use --help for usage information"
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+# If no services selected, use all
+if [ ${#SELECTED_SERVICES[@]} -eq 0 ]; then
+  SELECTED_SERVICES=("${ALL_SERVICES[@]}")
+fi
+
+# Kill existing session if requested
+if [ "$KILL_SESSION" = true ]; then
+  if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+    print_info "Killing existing tmux session: $SESSION_NAME"
+    tmux kill-session -t "$SESSION_NAME"
+    print_success "Session killed"
+  else
+    print_warning "No session named '$SESSION_NAME' found"
+  fi
+  exit 0
+fi
+
+# Validate stage is provided
+if [ -z "$STAGE" ]; then
+  print_error "Stage is required"
+  echo "Use --help for usage information"
+  exit 1
+fi
+
+# Validate stage exists
+VALID_STAGES=($(stages))
+if ! printf '%s\n' "${VALID_STAGES[@]}" | grep -q "^${STAGE}$"; then
+  print_error "Invalid stage: $STAGE"
+  echo "Available stages: ${VALID_STAGES[*]}"
+  exit 1
+fi
+
+# Don't allow container-registry stage
+if [[ "$STAGE" == "container-registry" ]]; then
+  print_error "Container registry stage not supported for deployment"
+  exit 1
+fi
+
+# Check if tmux is installed
+if ! command -v tmux &> /dev/null; then
+  print_error "tmux is not installed. Install it with: brew install tmux"
+  exit 1
+fi
+
+# Kill existing session if it exists
+if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+  print_warning "Existing session '$SESSION_NAME' found. Killing it..."
+  tmux kill-session -t "$SESSION_NAME"
+fi
+
+print_info "Running Kamal '$DEPLOY_COMMAND' on stage '$STAGE' in tmux session: $SESSION_NAME"
+print_info "Services: ${SELECTED_SERVICES[*]}"
+echo ""
+
+# Create new session with first service
+FIRST_SERVICE="${SELECTED_SERVICES[0]}"
+print_info "Creating tmux session with $FIRST_SERVICE..."
+tmux new-session -d -s "$SESSION_NAME" -n "$FIRST_SERVICE" -c "$PROJECT_ROOT"
+tmux send-keys -t "$SESSION_NAME:0" "bin/kamal $FIRST_SERVICE $STAGE $DEPLOY_COMMAND; exit" C-m
+
+# Add remaining services as new panes
+for i in "${!SELECTED_SERVICES[@]}"; do
+  if [ $i -eq 0 ]; then
+    continue  # Skip first service (already created)
+  fi
+
+  SERVICE="${SELECTED_SERVICES[$i]}"
+  print_info "Adding pane for $SERVICE..."
+
+  # Split the window
+  tmux split-window -t "$SESSION_NAME" -c "$PROJECT_ROOT"
+
+  # Send the deploy command (exit after completion)
+  tmux send-keys -t "$SESSION_NAME" "bin/kamal $SERVICE $STAGE $DEPLOY_COMMAND; exit" C-m
+
+  # Tile the panes evenly
+  tmux select-layout -t "$SESSION_NAME" tiled
+done
+
+echo ""
+print_success "Parallel deployment started in tmux session"
+print_info "Attach with: tmux attach -t $SESSION_NAME"
+print_info "Kill with: bin/deploy --kill"
+
+# Attach to the session
+tmux attach -t "$SESSION_NAME"

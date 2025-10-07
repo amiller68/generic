@@ -5,10 +5,6 @@ node_modules
 .pnp
 .pnp.js
 
-# Kamal
-.kamal/ssh_key
-.kamal/secrets
-
 .aider*
 
 # Local env files
@@ -32,7 +28,6 @@ coverage
 out/
 build
 dist
-
 
 # Debug
 npm-debug.log*

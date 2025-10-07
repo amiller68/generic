@@ -1,108 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import 'animations.css';
 
-@layer base {
-  /* Light mode defaults - BLACK AND WHITE TEST */
-  :root {
-    --background: 0 0% 100%;  /* Pure white */
-    --foreground: 0 0% 0%;    /* Pure black */
-    
-    --muted: 0 0% 95%;        /* Very light grey */
-    --muted-foreground: 0 0% 40%;  /* Dark grey */
-    
-    --card: 0 0% 100%;        /* White */
-    --card-foreground: 0 0% 0%;    /* Black */
-    
-    --popover: 0 0% 100%;     /* White */
-    --popover-foreground: 0 0% 0%; /* Black */
-    
-    --border: 0 0% 85%;       /* Light grey border */
-    --input: 0 0% 85%;        /* Light grey border */
-    
-    --primary: 0 0% 0%;       /* Black primary */
-    --primary-foreground: 0 0% 100%; /* White text on black */
-    
-    --secondary: 0 0% 90%;    /* Light grey */
-    --secondary-foreground: 0 0% 0%; /* Black text */
-    
-    --accent: 0 0% 70%;       /* Medium grey accent */
-    --accent-foreground: 0 0% 0%;   /* Black text */
-    
-    --destructive: 0 0% 20%; /* Dark grey for errors */
-    --destructive-foreground: 0 0% 100%; /* White text */
-    
-    --ring: 0 0% 50%;         /* Medium grey focus ring */
-  }
-  
-  /* Dark mode - INVERTED BLACK AND WHITE */
-  .dark {
-    --background: 0 0% 0%;    /* Pure black */
-    --foreground: 0 0% 100%;  /* Pure white */
-    
-    --muted: 0 0% 10%;        /* Very dark grey */
-    --muted-foreground: 0 0% 60%;  /* Light grey */
-    
-    --card: 0 0% 0%;          /* Black */
-    --card-foreground: 0 0% 100%;  /* White */
-    
-    --popover: 0 0% 0%;       /* Black */
-    --popover-foreground: 0 0% 100%; /* White */
-    
-    --border: 0 0% 20%;       /* Dark grey border */
-    --input: 0 0% 20%;        /* Dark grey border */
-    
-    --primary: 0 0% 100%;     /* White primary */
-    --primary-foreground: 0 0% 0%; /* Black text on white */
-    
-    --secondary: 0 0% 15%;    /* Dark grey */
-    --secondary-foreground: 0 0% 100%; /* White text */
-    
-    --accent: 0 0% 30%;       /* Dark grey accent */
-    --accent-foreground: 0 0% 100%; /* White text */
-    
-    --destructive: 0 0% 80%; /* Light grey for errors */
-    --destructive-foreground: 0 0% 0%; /* Black text */
-    
-    --ring: 0 0% 50%;         /* Medium grey focus ring */
-  }
-}
+/* Import shared branding CSS variables and animations */
+@import '../../branding/styles/variables.css';
+@import '../../branding/styles/animations.css';
 
-@layer utilities {
-  /* Gradient text utility - GRAYSCALE TEST */
-  .gradient-text {
-    @apply bg-gradient-to-r from-black to-gray-600 bg-clip-text text-transparent;
-  }
-  
-  .dark .gradient-text {
-    @apply from-white to-gray-400;
-  }
-}
+/* Import shared utility classes that use @apply */
+@import '../../branding/styles/utilities.css';
 
-@layer components {
-  /* Simple, reusable components */
-  .card {
-    @apply bg-card border border-border rounded-lg p-6;
-  }
-  
-  .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-colors;
-  }
-  
-  .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all;
-  }
-  
-  .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
-  }
-  
-  .input {
-    @apply w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-input;
-  }
-  
-  .text-muted {
-    @apply text-muted-foreground;
-  }
-}
+/* Python-specific styles can be added below */

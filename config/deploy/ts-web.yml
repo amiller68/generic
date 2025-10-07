@@ -1,31 +1,34 @@
-# Kamal deploy configuration for TypeScript Web service
-service: generic-ts-web
+service: <%= ENV['PROJECT_NAME'] %>-ts-web
 
-# NOTE: this must match the name you passed to the container registry module
-# Container image
-image: "<%= ENV['REGISTRY_NAME'] %>/generic-ts-web"
+# NOTE (amiller68): do not change this!
+# It is important that this is kept in sync with
+#  the name of the service as described in the file
+#  name.
+# i.e. if the file name is py.yml, then the service name must be <%= ENV['PROJECT_NAME'] %>-py
+# Container image using Docker Hub
+image: <%= ENV['DOCKER_HUB_USERNAME'] %>/<%= ENV['PROJECT_NAME'] %>-ts-web
 
 # Deploy to these servers
 servers:
   web:
-    - "<%= ENV['DROPLET_IP'].strip %>"
+    - "<%= ENV['SERVER_IP'].strip %>"
 
-# SSH configuration  
+# SSH configuration
 ssh:
   user: root
-  key_data: ["<%= ENV['SSH_PRIVATE_KEY'] %>"]
+  keys: ["<%= ENV['SSH_PRIVATE_KEY_FILE'] %>"]
+  keys_only: true
 
-# Registry configuration
+# Registry configuration for Docker Hub
 registry:
-  server: "<%= ENV['REGISTRY_ENDPOINT'] %>"
-  username: "<%= ENV['DOCKERHUB_USERNAME'] %>"
+  username: <%= ENV['DOCKER_HUB_USERNAME'] %>
   password:
-    - DOCKERHUB_TOKEN
+    - DOCKER_HUB_TOKEN
 
 # Builder configuration
 builder:
   dockerfile: ts/apps/web/Dockerfile
-  context: "ts"
+  context: "."
   arch: amd64
   cache:
     type: registry
@@ -35,3 +38,5 @@ proxy:
   ssl: true
   host: ts.generic.krondor.org
   app_port: 3000
+  healthcheck:
+    path: /

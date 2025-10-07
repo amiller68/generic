@@ -10,7 +10,8 @@
     "check-types": "tsc --noEmit",
     "fmt": "prettier --write \"src/**/*.ts\" --config ../../.prettierrc",
     "fmt:check": "prettier --check \"src/**/*.ts\" --config ../../.prettierrc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
     "@repo/http-api": "workspace:*",

@@ -1,7 +1,6 @@
 # Generate SSH key pair if not provided
 resource "tls_private_key" "main" {
-  algorithm = "ECDSA"
-  ecdsa_curve = "P384"
+  algorithm = "ED25519"
 }
 
 # Use generated or provided SSH key

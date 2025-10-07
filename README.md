@@ -1,108 +1,338 @@
 # Generic Fullstack
 
-Take a look at the [deployed demo](https://generic.krondor.org)
+An extensible Docker-based deployment framework for rapidly building and deploying different types of applications with TypeScript and Python.
 
-This repository contains a couple different patterns for building full stack applications I've developed over the years, with focuses on:
-- type safe and ergonomic implementation patterns
-- rapid iteration and full featured CICD
-- owning the deployment pipeline
-- and a reliance on running applications in containers for portability
+**[Live Demo](https://generic.krondor.org)**
 
-The purpose of it is to track and publish the sum total of experience i have shipping
- quick weekend projects and experiments with the additional satisfaction of doing so
- with my tools of choice. Note, the described methods herin are:
- - **not audited**: use at your own risk
- - **not infinitely scalable**: note the lack of lambdas, external service providers, and orchestrators.
-    These templates are meant to provide a base for a proof of concept that you might extend into a long lived
-    application. It is up to you to decide on the right deployment surface and implement it. That being
-    said, monoliths are pretty much enough for lots of projects, and that's exactly what you get here!
-- **unfinished** and likely will always be so. Last year I was writing bespoke ansible and managing my SSH
-    keys in my password manager -- things change! be sure to check back for updates, or feel free to contribute one.
+## Philosophy
 
-For more info on my deployment posture, take a look at [my dev ops docs](./docs/dev-ops/index.md)
+This framework is built on the principle that shipping quickly shouldn't mean sacrificing control. It provides:
 
-## Templates
+- **Type-safe, ergonomic patterns** for both frontend and backend
+- **Rapid iteration** with hot-reload dev environments
+- **Own your deployment** - no vendor lock-in, deploy to any VM
+- **Container-first** - portable, reproducible builds
+- **Single source of truth** - all config in `.env.project` and `.env.vault`
+- **Extensible architecture** - start with templates, adapt to your needs
 
-### Typescript
+**Note**: These templates are designed for rapid prototyping and small-to-medium projects. Not audited for enterprise security, not infinitely scalable (no lambdas, no Kubernetes). Perfect for weekend projects, MVPs, and proof-of-concepts that you can grow into production apps.
 
-**Typescript + pnpm + turbo repo**
+For deployment philosophy and architecture details, see [docs/dev-ops/index.md](./docs/dev-ops/index.md)
 
-After many years banging my head against the typescript ecosystem, I finally found a development
- pattern that (more or less) works: `pnpm` for package management and `turbo` for monorepo support.
+## What's Included
 
-This template is great for:
-- writing simple static or client driven sites
-- one off express services or public APIs
-- situtations where you need access to typescript
-- or otherwise typescript is your team's core skillset
+### TypeScript Stack (`ts/`)
 
-As is, it comes with:
-- a simple single page static vite application
-- and an express api app with type safe handlers
+**pnpm + Turbo monorepo with Vite and Express**
 
-It could be readily extended to projects such as:
-- a crypto app with no backend state
-- a quick hackathon project
-- or a public portfolio or static blog
+- Vite + React web application with Tailwind CSS
+- Express API server with type-safe handlers
+- Shared TypeScript configs and types
+- Development hot-reload and production builds
 
-I would really like to extend it with:
-- some sort of auth pattern, either based on:
-   - client-side crytpographic keys
-   - a drop in auth proxy
-- backend state via either 
-    - a sql dialect 
-        - (I have yet to find a fully featured and type safe sql tool for typescript projects that I would want to maintain here)
-    - or mongo, which is pretty easy to hack with in typescript
+See [ts/README.md](./ts/README.md) for details.
 
-### Python
+### Python Stack (`py/`)
+**FastAPI + SQLAlchemy + HATEOAS**
 
-**Python + uv + FastAPI + SqlAchemy + HATEOAS**
+- FastAPI server with server-side rendering
+- SQLAlchemy ORM with Alembic migrations
+- PostgreSQL database (local + production)
+- Google OAuth authentication
+- htmx + Tailwind CSS for responsive UI
 
-I recently fell in love with [HATEOAS](https://en.wikipedia.org/wiki/HATEOAS) as a development pattern 
- for apps built on top of REST APIs. I've had alot of fun using tools like [htmx](https://htmx.org/) and [franken ui](https://franken-ui.dev)
- for building pretty, responsive full stack applications against a server written in the language of your choice.
+See [py/README.md](./py/README.md) for details.
 
-I decided to start protoyping new ideas entirely in Python using this pattern because:
-- there are python libraries for pretty much anything
-- it gets the latest and greatest in patterns for working with LLMs
-- and declaritive execution is handy when it comes to rapid iteration
+### Deployment Framework
+**Terraform + Kamal + 1Password + Digital Ocean**
 
-At the moment this template includes:
-- Handy dev tooling, including hot reloading in response to code changes
-- Ready-to-go local postgres for local hacking
-- Google OAuth (which is pretty much all you need for a simple product)
-- and easy to extend patterns for writing SSR pages and components
+- Infrastructure as Code with Terraform
+- Container orchestration with Kamal
+- Secrets management with 1Password
+- DNS with Cloudflare
+- Automated SSL via Let's Encrypt
 
-This template is great for:
-- all sorts of full stack applications
-- quick protoyping
+## Quick Start
 
-I would really like to extend it with:
-- Ready-to-go local redis + background jobs using Arq
-- common sense LLM patterns + maybe a fly wheel implementation against [Tensor Zero](https://www.tensorzero.com/)
+### Prerequisites
 
-### Rust
+1. **1Password account** with CLI installed (`op`)
+2. **Terraform Cloud account** (free tier)
+3. **Digital Ocean account** with API token
+4. **Cloudflare account** managing your DNS zone
+5. **Docker Hub account** (or GitHub Container Registry)
 
-TODO: 
-if you peak at [my github repos](https://github.com/amiller68?tab=repositories), you can see I have a few opinions on what makes for a manageable full-stack Rust Web App, largely informed by [my friend sam's work](https://github.com/sstelfox/web-app-template). I'll be moving examples of that work here, and it should eventually include am example detailing:
-- a full-stack axum + htmx web app
-- with OIDC based authorization
-- backed by SQLX and [insert-sql-flavor-here]
-- and a companion CLI tool template
+### Setup Workflow
 
-and maybe some handy patterns for shipping wasm directly to the browser if I get a lil crazy with it.
+Follow these guides in order:
 
-I don't think this stack is necessarily the best one for quickly protoyping ideas, considering that:
-- the Rust ecosystem is still pretty immature, and you won't find the support for the library or framework you need 100% of the time
-- type checking, a good generic system, and memory safety are amazing, but sometimes get in the way of moving fast
-- good Rust engineers are hard to find, and hard to hire for
+1. **[Complete Walkthrough](./docs/setup/WALKTHROUGH.md)** - Step-by-step setup guide
+2. **[1Password Setup](./docs/setup/ONE_PASSWORD.md)** - Configure vaults and secrets
+3. **[Terraform Cloud Setup](./docs/setup/TERRAFORM_CLOUD.md)** - Create org and workspaces
+4. **[Infrastructure Setup](./docs/setup/INFRASTRUCTURE.md)** - Deploy container registry and servers
+5. **[Kamal Deployment](./docs/deployment/KAMAL.md)** - Deploy your applications
 
-BUT its still my favorite in that:
-- Rust is incredibly portable
-- The community's documentation for crates is unmatched by any other language I've worked with
-- Cargo provides an unbeatable developer experience for working with dependencies and feature gaurds
+### Development
 
+```bash
+# Install dependencies for all projects
+make install
 
-## TODOs
+# Run all dev servers in tmux
+make dev
 
-- I think pulumi might actually be a better fit for provisioning the scope of infrastructure we define for a project like this.
+# Run specific project
+make dev-py   # Python API only
+make dev-ts   # TypeScript apps only
+
+# Build styles
+make styles
+
+# Run checks (format, types, tests)
+make check
+```
+
+See [docs/development/LOCAL.md](./docs/development/LOCAL.md) for detailed development workflows.
+
+## Project Structure
+
+```
+.
+├── bin/                    # Deployment and infrastructure scripts
+│   ├── tfc               # Terraform Cloud management
+│   ├── iac               # Infrastructure as Code (Terraform wrapper)
+│   ├── kamal             # Deployment with Kamal
+│   ├── vault             # 1Password secrets access
+│   ├── ssh               # SSH into servers
+│   └── dev               # Multi-project tmux dev environment
+├── config/
+│   └── deploy/           # Kamal deployment configs per service
+├── iac/
+│   ├── modules/          # Reusable Terraform modules
+│   └── stages/           # Stage-specific configs (production, staging)
+├── py/                   # Python FastAPI application
+├── ts/                   # TypeScript monorepo (Vite, Express)
+├── branding/             # Shared brand assets (CSS, icons, fonts)
+├── docs/                 # Detailed documentation
+│   ├── setup/          # Setup guides
+│   ├── deployment/     # Deployment guides
+│   └── development/    # Development guides
+├── .env.project          # Project configuration
+└── .env.vault            # Vault paths for secrets
+```
+
+## Configuration
+
+### `.env.project` - Project Settings
+
+Single source of truth for project-wide configuration:
+
+```bash
+PROJECT_NAME=generic                  # Must be globally unique (used for TFC org)
+DNS_ROOT_ZONE=yourdomain.com         # Your Cloudflare domain
+SERVICES="py:app,ts-web:"            # Services and subdomains
+CLOUD_VAULT=cloud-providers          # 1Password vault for cloud credentials
+```
+
+**Important**: `PROJECT_NAME` must be globally unique as it becomes your Terraform Cloud organization name (`${PROJECT_NAME}-org`).
+
+All infrastructure, deployment, and app configs derive from this file.
+
+### `.env.vault` - Secrets Paths
+
+Defines paths to secrets in 1Password:
+
+```bash
+# Cloud provider credentials
+TF_TOKEN=op://cloud-providers/TERRAFORM_CLOUD_API_TOKEN/credential
+DOCKER_HUB_USERNAME=op://cloud-providers/DOCKER_HUB_LOGIN/username
+CLOUDFLARE_API_TOKEN=op://cloud-providers/CLOUDFLARE_DNS_API_TOKEN/credential
+DIGITALOCEAN_TOKEN=op://cloud-providers/DO_API_TOKEN/credential
+
+# Stage-specific app secrets
+GOOGLE_O_AUTH_CLIENT_ID=op://${VAULT_SLUG}/GOOGLE_O_AUTH_CLIENT/username
+```
+
+Where `${VAULT_SLUG}` = `${PROJECT_NAME}-${STAGE}` (e.g., `generic-production`).
+
+See [docs/setup/ONE_PASSWORD.md](./docs/setup/ONE_PASSWORD.md) for vault structure.
+
+## Common Commands
+
+### Infrastructure Management
+
+```bash
+# Terraform Cloud setup
+make tfc up              # Create org and workspaces
+make tfc status          # Check TFC status
+
+# Infrastructure deployment
+make iac <stage> <command>
+
+# Examples:
+make iac container-registry init    # Setup container registry
+make iac container-registry apply   # Deploy registry
+make iac production init            # Initialize production
+make iac production plan            # Review infrastructure changes
+make iac production apply           # Deploy production infrastructure
+make iac production output          # Show outputs (IPs, keys, etc)
+```
+
+### Application Deployment
+
+```bash
+# Deploy with Kamal
+make kamal ARGS="<service> <stage> <command>"
+
+# Examples:
+make kamal ARGS="py production deploy"         # Deploy Python API to production
+make kamal ARGS="ts-web production deploy"     # Deploy web app to production
+make kamal ARGS="py production logs"           # View Python API logs
+make kamal ARGS="py production app exec"       # Execute command in container
+```
+
+### SSH Access
+
+```bash
+# SSH into production server
+bin/ssh production
+
+# SSH as specific user
+bin/ssh production ubuntu
+```
+
+### Development
+
+```bash
+# Multi-project development
+make dev                 # All projects in tmux
+make dev ARGS="--kill"   # Kill tmux session
+
+# Single project development
+make dev-py             # Python only
+make dev-ts             # TypeScript only
+
+# Build and checks
+make build              # Build all projects
+make check              # Run all checks (format, types, tests)
+make styles             # Build styles for all projects
+```
+
+## Architecture
+
+### Local Development
+```
+Developer Machine
+├── tmux session (make dev)
+│   ├── Python FastAPI (port 8000)
+│   ├── TypeScript Vite web (port 5173)
+│   ├── TypeScript Express API (port 3001)
+│   └── Local PostgreSQL (Docker, port 5432)
+└── 1Password vault integration
+```
+
+### Production Deployment
+```
+Internet → Cloudflare DNS → Digital Ocean Droplet
+                            └── Kamal Proxy (Traefik)
+                                ├── Web app (yourdomain.com)
+                                ├── Python API (app.yourdomain.com)
+                                └── PostgreSQL (internal only)
+```
+
+## Deployment Workflow
+
+1. **Configure** `.env.project` with your project name and domain
+2. **Setup 1Password** vaults with cloud credentials
+3. **Create TFC workspaces**: `make tfc up`
+4. **Deploy container registry**: `make iac container-registry apply`
+5. **Deploy infrastructure**: `make iac production apply`
+6. **Bootstrap server**: `make kamal ARGS="py production setup"` (first time only)
+7. **Boot accessories**: `make kamal ARGS="py production accessory boot postgres"` (if service has them)
+8. **Deploy services**: `make kamal ARGS="py production deploy"`
+
+Each step is automated and uses secrets from 1Password. No manual credential management.
+
+## Documentation
+
+### Setup Guides
+- [Complete Walkthrough](./docs/setup/WALKTHROUGH.md) - Step-by-step setup guide
+- [1Password Setup](./docs/setup/ONE_PASSWORD.md) - Configure vaults and secrets
+- [Terraform Cloud Setup](./docs/setup/TERRAFORM_CLOUD.md) - Create org and workspaces
+- [Infrastructure Setup](./docs/setup/INFRASTRUCTURE.md) - Deploy servers and DNS
+
+### Deployment Guides
+- [Kamal Deployment](./docs/deployment/KAMAL.md) - Deploy and manage services
+
+### Development Guides
+- [Local Development](./docs/development/LOCAL.md) - Dev environment setup
+- [TypeScript Projects](./ts/README.md) - Vite app, Express API, and monorepo
+- [Python Application](./py/README.md) - FastAPI, database, migrations
+
+### Operations
+- [DevOps Philosophy](./docs/dev-ops/index.md) - Architecture and design decisions
+
+## Troubleshooting
+
+**"Unable to authenticate"**
+- Check 1Password credentials: `bin/vault read DOCKER_HUB_USERNAME`
+- Verify vault names match `.env.project` and `.env.vault`
+
+**"No infrastructure deployed"**
+- Run `make iac production apply` first
+- Check Terraform Cloud workspaces: `make tfc status`
+
+**"Container won't start"**
+- Check logs: `make kamal ARGS="<service> production logs"`
+- Verify environment variables in 1Password vault
+
+**"SSH connection refused"**
+- Check firewall allows your IP
+- Get SSH command: `make iac production output ssh_connect_command`
+
+See individual docs for more troubleshooting.
+
+## Extending the Framework
+
+This framework is designed to be extensible:
+
+### Adding New Application Stacks
+
+The TypeScript and Python templates demonstrate two different patterns. You can:
+- Add new language stacks (Rust, Go, etc.)
+- Mix and match components
+- Customize deployment configs
+
+### Planned Extensions
+
+**Rust Stack** (Planned):
+- Axum + htmx web app
+- OIDC authorization
+- SQLX database integration
+- Companion CLI tool
+
+**Python Enhancements**:
+- Redis + background jobs using Arq
+- LLM patterns with Tensor Zero
+
+**TypeScript Enhancements**:
+- Auth patterns (OAuth, crypto keys)
+- SQL integration for backend state
+
+## Cost Estimate
+
+Running this stack costs approximately:
+- **Digital Ocean Droplet** (s-1vcpu-1gb): $6/month
+- **Cloudflare DNS**: Free
+- **Terraform Cloud**: Free (up to 500 resources)
+- **1Password**: Varies by plan
+
+**Total minimum**: ~$6-15/month depending on your 1Password plan.
+
+## Contributing
+
+This framework is under active development. Expect frequent changes and improvements. Check back for updates or contribute your own!
+
+## License
+
+Use at your own risk. Not audited, not infinitely scalable, not finished. Perfect for learning and rapid prototyping.

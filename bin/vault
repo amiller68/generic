@@ -1,24 +1,209 @@
 #!/bin/bash
 
-# Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}")/.." && pwd )"
 
-# Source the HCP env file if it exists
-if [ -f "$PROJECT_ROOT/.env.hcp" ]; then
-    source "$PROJECT_ROOT/.env.hcp"
-fi
+source "$PROJECT_ROOT/bin/utils"
+source "$PROJECT_ROOT/bin/config"
 
-# Source the vault app env file if it exists (for py specific configs)
-if [ -f "$PROJECT_ROOT/py/.env.vault" ]; then
-    source "$PROJECT_ROOT/py/.env.vault"
-fi
+# our default is just the development vault
+DEFAULT_STAGE="development"
 
+# Validate that the vaults we expect exist in 1Password
+#  - We should have <project-name>-<stage> for every deployment described in ./iac/stages
+#  - We should have a <project-name>-development vault for storing the development environment
+#  - We should have out <cloud-provider> vault for storing the cloud provider environment
+validate_vaults() {
+    local all_stages=$STAGES
+    local all_valid=true
+
+    # TODO (amiller68): this is kinda messy, but it works for now
+    # validate the deployed stages -- make an exception for container-registry
+    #  though
+    for stage in $all_stages; do
+        if [[ "$stage" == "container-registry" ]]; then
+            continue
+        fi
+        local vault_name="${PROJECT_NAME}-${stage}"
+        if ! op vault list --format=json 2>/dev/null | jq -e ".[] | select(.name ==
+\"$vault_name\")" > /dev/null 2>&1; then
+            echo "Error: Vault '$vault_name' not found in 1Password" >&2
+            all_valid=false
+        fi
+    done
+
+    # validate the development stage
+    local development_vault="${PROJECT_NAME}-development"
+    if ! op vault list --format=json 2>/dev/null | jq -e ".[] | select(.name ==
+\"$development_vault\")" > /dev/null 2>&1; then
+        echo "Error: Vault '$development_vault' not found in 1Password" >&2
+        all_valid=false
+    fi
+
+    # Validate cloud provider vault
+    local cloud_provider_vault="${CLOUD_VAULT}"
+    if ! op vault list --format=json 2>/dev/null | jq -e ".[] | select(.name ==
+\"$cloud_provider_vault\")" > /dev/null 2>&1; then
+        echo "Error: Vault '$cloud_provider_vault' not found in 1Password" >&2
+        all_valid=false
+    fi
+
+    [ "$all_valid" = true ]
+}
+
+validate_vaults
+
+# validate that we can access one password,
+#  by first checking if we are in a ci environment,
+#    checking for a valid service account env if so
+#  and then trying to access a op
+validate_op_auth() {
+    op account get > /dev/null 2>&1
+}
+
+# validate_vaults
+validate_op_auth
+
+# Function to run commands with vault
 run_with_vault() {
-    hcp vault-secrets run --project=${VAULT_PROJECT_ID} --app=${VAULT_APP} -- "$@"
+    local _STAGE_ARG=""
+    local RUN_ARGS=()
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --stage)
+                _STAGE_ARG=$2
+                shift 2
+                ;;
+            --)
+                shift
+                RUN_ARGS=("$@")
+                break
+                ;;
+            *)
+                RUN_ARGS=("$@")
+                break
+                ;;
+        esac
+    done
+
+    # TODO (amiller68): i am not the biggest fan of this,
+    #  but it's fine for now. We should have a way to *just* load
+    #  cloud credentials
+    STAGE="${_STAGE_ARG:-$DEFAULT_STAGE}"
+
+    # Validate command
+    if [ ${#RUN_ARGS[@]} -eq 0 ]; then
+        echo "Error: No command specified to run"
+        return 1
+    fi
+
+    # Export environment variables and run
+    export STAGE=$STAGE
+    export PROJECT_NAME=$PROJECT_NAME
+    export CLOUD_VAULT=$CLOUD_VAULT
+
+    op run --env-file="$PROJECT_ROOT/.env.vault" --no-masking -- "${RUN_ARGS[@]}"
 }
 
+# Function to read a single vault value
 read_from_vault() {
-    ret=$(hcp vault-secrets secrets  open --project=${VAULT_PROJECT_ID} --app=${VAULT_APP} -- "$@")
-    echo "$ret" | grep "Value:" | awk '{print $2}'
+    local KEY="$1"
+    local STAGE_ARG=""
+
+    # Parse stage if provided
+    if [[ "$1" == "--stage" ]]; then
+        STAGE_ARG="$2"
+        KEY="$3"
+    fi
+
+    # Set stage
+    local CURRENT_STAGE=${STAGE_ARG}
+
+    if [ -z "$KEY" ]; then
+        echo "Error: Please specify a key to read from vault" >&2
+        echo "Usage: $0 read [--stage <stage>] <KEY>" >&2
+        echo "Available keys in .env.vault:" >&2
+        grep "^[A-Z_]*=" "$PROJECT_ROOT/.env.vault" | cut -d'=' -f1 | sed 's/^/  - /' >&2
+        return 1
+    fi
+
+    # Export stage and project name for variable substitution
+    export STAGE=$CURRENT_STAGE
+    export PROJECT_NAME=$PROJECT_NAME
+    export VAULT_SLUG="${PROJECT_NAME}-${STAGE}"
+
+    # Look for the key in .env.vault
+    local VALUE=$(grep "^${KEY}=" "$PROJECT_ROOT/.env.vault" | cut -d'=' -f2-)
+
+    if [ -z "$VALUE" ]; then
+        echo "Error: Key '$KEY' not found in .env.vault" >&2
+        return 1
+    fi
+
+    # check if the value has a STAGE variable in it, if so we should
+    #  raise an error if we were not given a stage
+    # e.g.
+    #  GOOGLE_O_AUTH_CLIENT_ID=op://${VAULT_SLUG}/GOOGLE_O_AUTH_CLIENT/username
+    # Should not be read without a stage, and you can't just check the vault slug since
+    #  it will match whatever we just exported ^^.
+    if [[ "$VALUE" == *"${VAULT_SLUG}"* ]]; then
+        echo "Error: Key '$KEY' contains a STAGE variable, but no stage was provided" >&2
+        return 1
+    fi
+
+    # Substitute variables in the value
+    VALUE=$(eval echo "$VALUE")
+
+    # If it's a 1Password reference, resolve it
+    if [[ "$VALUE" == op://* ]]; then
+        op read "$VALUE" 2>/dev/null || {
+            echo "Error: Failed to read '$VALUE' from 1Password" >&2
+            return 1
+        }
+    else
+        # Return the value as-is
+        echo "$VALUE"
+    fi
 }
+
+help() {
+    echo "Vault - provides nice helpers for reading env"
+    echo " from one password in line with the setup we expect."
+    echo ""
+    echo "Usage:"
+    echo "  $0 read [--stage <stage>] <KEY>   - Read a specific value from vault"
+    echo "  $0 write [--stage <stage>] <KEY> <VALUE> - Write a specific value to vault"
+    echo ""
+    echo "Examples:"
+    echo "  $0 read HASHICORP_API_TOKEN"
+    echo "  $0 read --stage production GOOGLE_O_AUTH_CLIENT_ID"
+    echo "  $0 --stage development -- python app.py"
+}
+
+# Check if script is being sourced or executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # Script is being executed directly
+    CMD="${1:-help}"
+
+    case "$CMD" in
+        read)
+            shift
+            read_from_vault "$@"
+            ;;
+        run)
+            shift
+            run_with_vault "$@"
+            ;;
+        help|--help)
+            help
+            ;;
+        *)
+            help
+            ;;
+    esac
+else
+    # Script is being sourced - just define the functions
+    export -f run_with_vault
+    export -f read_from_vault
+fi

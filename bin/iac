@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# iac - Infrastructure as Code Management Script
+# Runs terraform commands with 1Password vault secret injection
+
+set -e
+
+# Get the directory where this script is located
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}")/.." && pwd )"
+IAC_ROOT="$PROJECT_ROOT/iac"
+
+source "$PROJECT_ROOT/bin/utils"
+source "$PROJECT_ROOT/bin/config"
+source "$PROJECT_ROOT/bin/vault"
+
+# Function to show usage
+usage() {
+    echo -e "${YELLOW}Infrastructure as Code Management${NC}"
+    echo ""
+    echo "Usage: $0 <stage> <terraform-command> [args]"
+    echo ""
+    echo "Where <stage> is one of the following:"
+    echo "  ${STAGES}"
+    echo ""
+    echo "And <terraform-command> is any valid Terraform command"
+    exit 1
+}
+
+# Check arguments
+if [[ $# -lt 2 ]]; then
+    usage
+fi
+
+STAGE="$1"
+
+# Validate and map stage
+if ! is_in_list "$STAGES" "$STAGE"; then
+    print_error "Unknown stage: $STAGE"
+    echo "Available stages: $STAGES"
+    exit 1
+fi
+
+shift
+
+STAGE_DIR="$IAC_ROOT/stages/$STAGE"
+
+if [ ! -d "$STAGE_DIR" ]; then
+    print_error "Stage directory not found: $STAGE_DIR. This should not happen."
+    echo "Searched in: $IAC_ROOT/stages/$STAGE"
+    exit 1
+fi
+
+# TODO (amiller68): it would be really nice if we could
+#  just inherit the environment from the project config and
+#  relevant vault params without having to manually export them
+#  here.
+# That is a project for another day.
+# For now, if terraform needs a variable, you must export it here
+#  as a proper TF_VAR_ variable.
+# Export common variables for all stages
+# For container-registry stage, export services we want to create repositories for
+export TF_VAR_services="${SERVICES}" # determind by the services in the config/deploy directory
+# For common stage, for cloudflare to know the root zone in order to create DNS records
+#  for all services
+export TF_VAR_project_name="${PROJECT_NAME}" # specified in .env.project
+export TF_VAR_docker_hub_username=$(read_from_vault DOCKER_HUB_USERNAME)
+export TF_VAR_docker_hub_password=$(read_from_vault DOCKER_HUB_PASSWORD)
+# NOTE (amiller68): you should only really turn this on if you have a pro
+#  account to enable multiple private repositories
+export TF_VAR_use_private_repos=${USE_PRIVATE_REPOS:-false}
+export TF_VAR_dns_root_zone="${DNS_ROOT_ZONE}"
+# Export subdomains for Cloudflare DNS module
+# Convert space-separated list to comma-separated for Terraform
+SUBDOMAINS=$(list_subdomains "$STAGE" | tr ' ' ',')
+export TF_VAR_subdomains="${SUBDOMAINS}"
+
+run_with_vault -- sh -c "export TF_TOKEN_app_terraform_io=\$TF_TOKEN && cd '$STAGE_DIR' && terraform $*"

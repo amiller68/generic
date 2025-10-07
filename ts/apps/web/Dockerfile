@@ -12,8 +12,8 @@ RUN apk update
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 RUN npm i -g turbo@^2
-# copy over the entire repo (sans .dockerignore matches)
-COPY . .
+# copy over the ts monorepo (sans .dockerignore matches)
+COPY ts/ .
 # generate the pruned artifacts required to build the example service
 RUN turbo prune ${SERVICE_NAME} --docker
 # 2. install + build phase
@@ -52,7 +52,7 @@ COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 RUN mkdir -p /etc/nginx/templates
 
 # Copy nginx.conf (created at build time)
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ts/apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3000
 

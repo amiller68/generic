@@ -1,107 +1,106 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+# kamal - Simplified deployment script using Kamal with automatic configuration
+# Automatically loads secrets from 1Password and infrastructure outputs from Terraform
+
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+source "$PROJECT_ROOT/bin/utils"
+source "$PROJECT_ROOT/bin/config"
+source "$PROJECT_ROOT/bin/vault"
 
 # Function to show usage
 usage() {
-  echo "Run Kamal commands with Terraform-sourced credentials"
-  echo ""
-  echo "Usage: $0 <stage> <service> <kamal-command> [args]"
-  echo ""
-  echo "Stage: production"
-  echo "Services: py, ts-api, ts-web, static"
-  echo ""
-  echo "Examples:"
-  echo "  $0 production ts-web deploy"
-  echo "  $0 production ts-web logs"
-  echo "  $0 production ts-web rollback"
-  exit 1
+    local service_names=$(list_service_names)
+
+    echo -e "${YELLOW}Kamal Deployment Tool${NC}"
+    echo ""
+    echo "Usage: $0 <service> <stage> <command> [options]"
+    echo ""
+    echo " Where <service> is one of the following:"
+    echo "  ${service_names}"
+    echo " And <stage> is one of the following:"
+    echo "  ${STAGES}"
+    echo " And <command> is any valid Kamal command"
+    echo ""
+    echo "This will run the corresponding Kamal command for the service"
+    echo " defined in config/deploy/<service>.yml for the stage"
+    echo "Examples:"
+    echo "  $0 next production deploy      # Deploy Next.js app"
+    echo "  $0 py production logs          # View Python API logs"
+    echo ""
+    echo "Environment:"
+    echo "  Stage: ${STAGE:-production} (set with STAGE env var)"
+    exit 1
 }
 
 # Check arguments
 if [[ $# -lt 3 ]]; then
-  usage
+    usage
 fi
 
-STAGE="$1"
-SERVICE="$2"
+SERVICE="$1"
+STAGE="$2"
 shift 2
 
-# Validate stage
-case "$STAGE" in
-  production)
-    ;;
-  *)
-    echo "Error: Unknown stage: $STAGE"
-    echo "Available stages: production"
+# Validate and map service
+if ! is_in_list "$SERVICES" "$SERVICE"; then
+    print_error "Unknown service: $SERVICE"
+    echo "Available services: $SERVICES"
     exit 1
-    ;;
-esac
+fi
 
-# Validate service
-case "$SERVICE" in
-  py|ts-web|static)
-    ;;
-  *)
-    echo "Error: Unknown service: $SERVICE"
-    echo "Available services: py, ts-web, static"
+# Validate and map stage
+if ! is_in_list "$STAGES" "$STAGE"; then
+    print_error "Unknown stage: $STAGE"
+    echo "Available stages: $STAGES"
     exit 1
-    ;;
-esac
+fi
+# if the stage is for the container-registry, then
+#  throw an error
+if [[ "$STAGE" == "container-registry" ]]; then
+    print_error "Container registry stage not supported for Kamal"
+    exit 1
+fi
 
-CONFIG_FILE="$REPO_ROOT/config/deploy/${SERVICE}.yml"
-
+CONFIG_FILE="$PROJECT_ROOT/config/deploy/${SERVICE}.yml"
 # Check if config exists
 if [[ ! -f "$CONFIG_FILE" ]]; then
-  echo "Error: Config file not found: $CONFIG_FILE"
-  exit 1
+    print_error "Config file not found: $CONFIG_FILE. This should not happen."
+    exit 1
 fi
 
-# Get infrastructure outputs from Terraform
-DROPLET_IP=$(cd "$REPO_ROOT" && ./bin/tf "$STAGE" output -raw digitalocean_droplet_ip)
-SSH_PRIVATE_KEY=$(cd "$REPO_ROOT" && ./bin/tf "$STAGE" output digitalocean_ssh_private_key | sed -n '3,13p')
+# NOTE (amiller68): these are the default
+#  values we support for each stage, and should
+#  be supported without additional configuration
+#  in all of our kamal deployments.
+# They should be re-usable for all services across
+#  a given stage.
+export SERVER_IP=$("$PROJECT_ROOT/bin/iac" "$STAGE" output -raw server_ip 2>/dev/null | tail -n 1 || echo "")
+export SSH_PRIVATE_KEY=$("$PROJECT_ROOT/bin/iac" "$STAGE" output -raw ssh_private_key 2>/dev/null | tail -n -13 || echo "")
+export DOCKER_HUB_USERNAME=$("$PROJECT_ROOT/bin/vault" read DOCKER_HUB_USERNAME)
+export PROJECT_NAME=$PROJECT_NAME
+# write the ssh private key to a temp file with proper permissions
+SSH_PRIVATE_KEY_FILE=$(mktemp)
+echo "$SSH_PRIVATE_KEY" > "$SSH_PRIVATE_KEY_FILE"
+chmod 600 "$SSH_PRIVATE_KEY_FILE"
+export SSH_PRIVATE_KEY_FILE
+# make it so that the temp file is *ALWAYS* removed even if the script exits abnormally
+trap 'print_info "Cleaning up SSH private key file" && rm "$SSH_PRIVATE_KEY_FILE"' EXIT
 
-# Get Docker registry credentials from container-registry environment  
-REGISTRY_ENDPOINT=""
-REGISTRY_NAME=""
-DOCKERHUB_USERNAME=""
-if [[ -d "$REPO_ROOT/iac/envs/container-registry" ]]; then
-  REGISTRY_INFO=$(cd "$REPO_ROOT" && ./bin/tf container-registry output -json registry 2>/dev/null || echo '{}')
-  REGISTRY_ENDPOINT=$(echo "$REGISTRY_INFO" | jq -r '.endpoint' 2>/dev/null || echo '')
-  REGISTRY_NAME=$(echo "$REGISTRY_INFO" | jq -r '.name' 2>/dev/null || echo '')
-  DOCKER_CREDS=$(cd "$REPO_ROOT" && ./bin/tf container-registry output -raw registry_credentials 2>/dev/null || echo '')
-  
-  if [[ -n "$DOCKER_CREDS" ]]; then
-    # Decode the base64 auth to get username and password
-    AUTH_STRING=$(echo "$DOCKER_CREDS" | jq -r '.auths."registry.digitalocean.com".auth' 2>/dev/null || echo "")
-    if [[ -n "$AUTH_STRING" ]]; then
-      DECODED_AUTH=$(echo "$AUTH_STRING" | base64 -d)
-      DOCKERHUB_USERNAME=$(echo "$DECODED_AUTH" | cut -d: -f1)
-      DOCKERHUB_TOKEN=$(echo "$DECODED_AUTH" | cut -d: -f2)
-    fi
-  fi
-fi
+# Determine the hostname for the service given the service name and stage
+HOST_NAME=$(get_service_hostname "$SERVICE" "$STAGE")
+export HOST_NAME
+# also export hostnames for other services in the same stage
+export_service_hostnames "$STAGE"
 
-# TODO: make this more generic
-# If the service is py, export the Google client ID and secret
-#  Source them from hashicorp vault using the generic-py-production vault app
-if [[ "$SERVICE" == "py" ]]; then
-  export VAULT_APP="generic-py-$STAGE"
-  source "$REPO_ROOT/bin/vault"
-  export PY_GOOGLE_CLIENT_ID=$(read_from_vault GOOGLE_CLIENT_ID)
-  export PY_GOOGLE_CLIENT_SECRET=$(read_from_vault GOOGLE_CLIENT_SECRET)
-fi
+print_info "Running Kamal for $SERVICE on $STAGE"
+echo "-> Using config file: $CONFIG_FILE"
+echo "-> Target hostname: $HOST_NAME"
+echo "-> Host: $SERVER_IP"
 
-# Export for kamal config
-export DROPLET_IP
-export REGISTRY_ENDPOINT
-export REGISTRY_NAME
-export DOCKERHUB_USERNAME
-export DOCKERHUB_TOKEN
-export SSH_PRIVATE_KEY
-
-# Run kamal 
-cd "$REPO_ROOT" && kamal "$@" -c "$CONFIG_FILE"
+# run kamal, injecting our vault - note that we don't quote the kamal args
+# so they get properly expanded in the run_with_vault context
+run_with_vault --stage "$STAGE" -- kamal "$@" -c "$CONFIG_FILE"

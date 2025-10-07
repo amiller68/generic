@@ -1,29 +1,37 @@
-{# Footer Component #}
-{% macro footer() %}
+{# Footer Component #} {% macro footer() %}
 <footer class="bg-foreground text-background w-full">
     <div class="container mx-auto px-4 py-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-                <h3 class="text-lg font-semibold mb-4">generic</h3>
+                <h3 class="text-lg font-semibold mb-4">Generic</h3>
                 <p class="text-sm opacity-90">
-                    A modern, full-stack Python application template with authentication, database integration, and a clean UI.
+                    AI-powered tools for biochemistry research and discovery.
                 </p>
             </div>
             <div>
                 <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
                 <ul class="space-y-2">
                     <li>
-                        <a href="#features" class="text-sm opacity-90 hover:opacity-100 transition-opacity">
+                        <a
+                            href="#features"
+                            class="text-sm opacity-90 hover:opacity-100 transition-opacity"
+                        >
                             Features
                         </a>
                     </li>
                     <li>
-                        <a href="/app/dashboard" class="text-sm opacity-90 hover:opacity-100 transition-opacity">
+                        <a
+                            href="/dashboard"
+                            class="text-sm opacity-90 hover:opacity-100 transition-opacity"
+                        >
                             Dashboard
                         </a>
                     </li>
                     <li>
-                        <a href="/app/login" class="text-sm opacity-90 hover:opacity-100 transition-opacity">
+                        <a
+                            href="/login"
+                            class="text-sm opacity-90 hover:opacity-100 transition-opacity"
+                        >
                             Login
                         </a>
                     </li>
@@ -32,26 +40,55 @@
             <div>
                 <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
                 <div class="flex space-x-4">
-                    <a href="#" class="opacity-90 hover:opacity-100 transition-opacity">
-                        <uk-icon icon="facebook" width="24" height="24"></uk-icon>
+                    <a
+                        href="#"
+                        class="opacity-90 hover:opacity-100 transition-opacity"
+                    >
+                        <uk-icon
+                            icon="facebook"
+                            width="24"
+                            height="24"
+                        ></uk-icon>
                     </a>
-                    <a href="#" class="opacity-90 hover:opacity-100 transition-opacity">
-                        <uk-icon icon="twitter" width="24" height="24"></uk-icon>
+                    <a
+                        href="#"
+                        class="opacity-90 hover:opacity-100 transition-opacity"
+                    >
+                        <uk-icon
+                            icon="twitter"
+                            width="24"
+                            height="24"
+                        ></uk-icon>
                     </a>
-                    <a href="#" class="opacity-90 hover:opacity-100 transition-opacity">
-                        <uk-icon icon="instagram" width="24" height="24"></uk-icon>
+                    <a
+                        href="#"
+                        class="opacity-90 hover:opacity-100 transition-opacity"
+                    >
+                        <uk-icon
+                            icon="instagram"
+                            width="24"
+                            height="24"
+                        ></uk-icon>
                     </a>
-                    <a href="#" class="opacity-90 hover:opacity-100 transition-opacity">
+                    <a
+                        href="#"
+                        class="opacity-90 hover:opacity-100 transition-opacity"
+                    >
                         <uk-icon icon="github" width="24" height="24"></uk-icon>
                     </a>
-                    <a href="mailto:contact@example.com" class="opacity-90 hover:opacity-100 transition-opacity">
+                    <a
+                        href="mailto:contact@example.com"
+                        class="opacity-90 hover:opacity-100 transition-opacity"
+                    >
                         <uk-icon icon="mail" width="24" height="24"></uk-icon>
                     </a>
                 </div>
             </div>
         </div>
-        <div class="mt-8 pt-8 border-t border-background/10 text-center text-sm opacity-75">
-            &copy; {{ current_year }} generic. All rights reserved.
+        <div
+            class="mt-8 pt-8 border-t border-background/10 text-center text-sm opacity-75"
+        >
+            &copy; {{ current_year }} Generic. All rights reserved.
         </div>
     </div>
 </footer>

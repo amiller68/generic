@@ -1,0 +1,163 @@
+/* Shared utility classes - Import this AFTER @tailwind directives in your main CSS */
+
+@layer utilities {
+  /* Text utilities */
+  .gradient-text {
+    @apply bg-gradient-to-r from-black to-gray-600 bg-clip-text text-transparent;
+  }
+
+  .dark .gradient-text {
+    @apply from-white to-gray-400;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Scroll utilities */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Backdrop utilities */
+  .backdrop-blur-xs {
+    backdrop-filter: blur(2px);
+  }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+
+  .backdrop-blur {
+    backdrop-filter: blur(8px);
+  }
+
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+  }
+
+  .backdrop-blur-lg {
+    backdrop-filter: blur(16px);
+  }
+
+  .backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+  }
+
+  /* Grid utilities */
+  .grid-auto-fit {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+
+  .grid-auto-fill {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  /* Aspect ratio utilities */
+  .aspect-cinema {
+    aspect-ratio: 2.39 / 1;
+  }
+
+  .aspect-golden {
+    aspect-ratio: 1.618 / 1;
+  }
+}
+
+@layer components {
+  /* Card component */
+  .card {
+    @apply bg-card border border-border rounded-lg p-6;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-lg transition-shadow duration-200;
+  }
+
+  /* Button components */
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-colors duration-200;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .btn-outline {
+    @apply border border-border bg-background hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .btn-destructive {
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+  }
+
+  /* Input component */
+  .input {
+    @apply w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-colors;
+  }
+
+  /* Badge component */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors;
+  }
+
+  .badge-primary {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .badge-secondary {
+    @apply bg-secondary text-secondary-foreground;
+  }
+
+  .badge-outline {
+    @apply border border-border;
+  }
+
+  /* Text utilities */
+  .text-muted {
+    @apply text-muted-foreground;
+  }
+
+  .text-gradient {
+    @apply gradient-text;
+  }
+
+  /* Link component */
+  .link {
+    @apply text-primary underline-offset-4 hover:underline;
+  }
+
+  /* Divider component */
+  .divider {
+    @apply border-t border-border;
+  }
+
+  /* Container components */
+  .container-sm {
+    @apply max-w-2xl mx-auto px-4;
+  }
+
+  .container-md {
+    @apply max-w-4xl mx-auto px-4;
+  }
+
+  .container-lg {
+    @apply max-w-6xl mx-auto px-4;
+  }
+
+  .container-xl {
+    @apply max-w-7xl mx-auto px-4;
+  }
+}

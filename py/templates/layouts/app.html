@@ -1,58 +1,70 @@
-{% extends "layouts/base.html" %}
-
-{% block body %}
+{% extends "layouts/base.html" %} {% block body %}
 <div class="flex">
     <!-- Sidebar -->
     <aside class="w-64 min-h-screen bg-muted border-r">
         <div class="p-4">
             <!-- Logo -->
             <div class="flex items-center mb-8">
-                <img src="/static/icon.svg" alt="Icon" class="size-8 mr-3">
-                <span class="text-xl font-bold">generic</span>
+                <img src="/static/icon.svg" alt="Icon" class="size-8 mr-3" />
+                <span class="text-xl font-bold">Generic</span>
             </div>
-            
+
             <!-- Navigation -->
             <ul class="uk-nav-default" data-uk-nav>
                 <li id="nav-dashboard">
-                    <a href="/app/dashboard" 
-                       hx-get="/app/dashboard" 
-                       hx-target="#main-content" 
-                       hx-push-url="true"
-                       class="flex items-center">
+                    <a
+                        href="/app/dashboard"
+                        hx-get="/app/dashboard"
+                        hx-target="#main-content"
+                        hx-push-url="true"
+                        class="flex items-center"
+                    >
                         <uk-icon icon="grid" class="mr-3"></uk-icon>
                         Dashboard
                     </a>
                 </li>
                 <li id="nav-items" class="uk-parent">
-                    <a href="/app/items" class="flex items-center">
+                    <a href="/items" class="flex items-center">
                         <uk-icon icon="file-text" class="mr-3"></uk-icon>
-                        Items 
+                        Items
                         <span data-uk-nav-parent-icon></span>
                     </a>
                     <ul class="uk-nav-sub">
-                        <li><a href="/app/items/new">New Item</a></li>
-                        <li><a href="/app/items/list">All Items</a></li>
+                        <li><a href="/items/new">New Item</a></li>
+                        <li><a href="/items/list">All Items</a></li>
                     </ul>
                 </li>
                 <li id="nav-settings">
-                    <a href="/app/settings"
-                       hx-get="/app/settings"
-                       hx-target="#main-content"
-                       hx-push-url="true"
-                       class="flex items-center">
+                    <a
+                        href="/app/settings"
+                        hx-get="/app/settings"
+                        hx-target="#main-content"
+                        hx-push-url="true"
+                        class="flex items-center"
+                    >
                         <uk-icon icon="settings" class="mr-3"></uk-icon>
                         Settings
                     </a>
                 </li>
             </ul>
         </div>
-        
+
         <!-- User info at bottom -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
-            <div id="user-info" hx-get="/api/v0/auth/whoami" hx-trigger="load" class="mb-3">
+        <div
+            class="absolute bottom-0 left-0 right-0 p-4 border-t bg-background"
+        >
+            <div
+                id="user-info"
+                hx-get="/api/v0/auth/whoami"
+                hx-trigger="load"
+                class="mb-3"
+            >
                 <!-- User info will be loaded here -->
             </div>
-            <a href="/auth/logout" class="uk-button uk-button-primary uk-width-1-1 flex items-center justify-center">
+            <a
+                href="/auth/logout"
+                class="uk-button uk-button-primary uk-width-1-1 flex items-center justify-center"
+            >
                 <uk-icon icon="log-out" class="mr-2"></uk-icon>
                 Logout
             </a>
@@ -62,42 +74,43 @@
     <!-- Main content area -->
     <main class="flex-1 p-8">
         <div id="main-content">
-            {% if content %}
-                {{ content|safe }}
-            {% else %}
-                {% block content %}{% endblock %}
-            {% endif %}
+            {% if content %} {{ content|safe }} {% else %} {% block content %}{%
+            endblock %} {% endif %}
         </div>
     </main>
 </div>
 
 <!-- Navigation active state script -->
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    setActiveNav();
-    
-    // Handle HTMX navigation
-    document.body.addEventListener('htmx:afterSettle', function(event) {
-      setActiveNav();
+    document.addEventListener("DOMContentLoaded", function () {
+        setActiveNav();
+
+        // Handle HTMX navigation
+        document.body.addEventListener("htmx:afterSettle", function (event) {
+            setActiveNav();
+        });
     });
-  });
-  
-  function setActiveNav() {
-    const path = window.location.pathname;
-    
-    // Reset all nav items
-    document.querySelectorAll('#nav-dashboard, #nav-items, #nav-settings').forEach(function(el) {
-      el.classList.remove('uk-active');
-    });
-    
-    // Set active nav item based on path
-    if (path.startsWith('/app/dashboard')) {
-      document.getElementById('nav-dashboard')?.classList.add('uk-active');
-    } else if (path.startsWith('/app/items')) {
-      document.getElementById('nav-items')?.classList.add('uk-active');
-    } else if (path.startsWith('/app/settings')) {
-      document.getElementById('nav-settings')?.classList.add('uk-active');
+
+    function setActiveNav() {
+        const path = window.location.pathname;
+
+        // Reset all nav items
+        document
+            .querySelectorAll("#nav-dashboard, #nav-items, #nav-settings")
+            .forEach(function (el) {
+                el.classList.remove("uk-active");
+            });
+
+        // Set active nav item based on path
+        if (path.startsWith("/app/dashboard")) {
+            document
+                .getElementById("nav-dashboard")
+                ?.classList.add("uk-active");
+        } else if (path.startsWith("/items")) {
+            document.getElementById("nav-items")?.classList.add("uk-active");
+        } else if (path.startsWith("/app/settings")) {
+            document.getElementById("nav-settings")?.classList.add("uk-active");
+        }
     }
-  }
 </script>
 {% endblock %}

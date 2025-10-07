@@ -1,70 +1,80 @@
-{% extends "layouts/base.html" %}
-{% from "components/theme-switcher.html" import theme_switcher_compact %}
-{% from "components/footer.html" import footer %}
-
-{% block body %}
+{% extends "layouts/base.html" %} {% from "components/theme-switcher.html"
+import theme_switcher_compact %} {% from "components/footer.html" import footer
+%} {% block body %}
 <!-- Navigation Header -->
 <header class="flex items-center justify-between w-full shadow-sm px-4 py-2">
-  <!-- Logo -->
-  <div class="flex items-center">
-    <a href="/" class="flex items-center px-2 py-1 hover:bg-muted rounded-full" hx-get="/" hx-target="#content" hx-push-url="true">
-      <img src="/static/icon.svg" alt="Icon" class="h-8 mr-2">
-      <div class="flex flex-col">
-        <span class="font-black text-xl leading-none">generic</span>
-      </div>
-    </a>
-  </div>
+    <!-- Logo -->
+    <div class="flex items-center">
+        <a
+            href="/"
+            class="flex items-center px-2 py-1 hover:bg-muted rounded-full"
+            hx-get="/"
+            hx-target="#content"
+            hx-push-url="true"
+        >
+            <img src="/static/icon.svg" alt="Icon" class="h-8 mr-2" />
+            <div class="flex flex-col">
+                <span class="font-black text-xl leading-none">generic</span>
+            </div>
+        </a>
+    </div>
 
-  <!-- Desktop Navigation -->
-  <nav class="hidden sm:flex items-center flex-grow justify-center">
-    <!-- Empty nav for now -->
-  </nav>
-  
-  <!-- Controls -->
-  <div class="flex items-center gap-2">
-    <!-- Dark mode toggle -->
-    {{ theme_switcher_compact() }}
-    
-    <!-- Beta button - desktop -->
-    <a href="/app/dashboard" class="hidden sm:flex bg-foreground text-background px-6 py-2 hover:opacity-90 items-center justify-center rounded-full ml-2">beta →</a>
-    
-    <!-- Mobile menu button -->
-    <button id="mobile-menu-toggle" class="sm:hidden p-2" onclick="toggleMobileMenu()">
-      <uk-icon icon="menu" class="w-6 h-6"></uk-icon>
-    </button>
-  </div>
+    <!-- Desktop Navigation -->
+    <nav class="hidden sm:flex items-center flex-grow justify-center">
+        <!-- Empty nav for now -->
+    </nav>
+
+    <div class="flex items-center gap-2 mr-4">
+        <!-- Dark mode toggle -->
+        {{ theme_switcher_compact() }}
+    </div>
+
+    <div class="flex items-stretch w-48">
+        <a
+            href="/app/dashboard"
+            class="bg-foreground text-background px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full mx-3 my-2"
+            >beta →</a
+        >
+    </div>
 </header>
 
 <!-- Mobile dropdown menu -->
-<div id="mobile-menu" class="absolute top-14 right-4 w-64 bg-background border rounded-lg shadow-lg p-4 hidden sm:hidden">
-  <div class="space-y-4">
-    <!-- Beta button -->
-    <a href="/app/dashboard" class="bg-foreground text-background px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full w-full">beta →</a>
-  </div>
+<div
+    id="mobile-menu"
+    class="absolute top-14 right-4 w-64 bg-background border rounded-lg shadow-lg p-4 hidden sm:hidden"
+>
+    <div class="space-y-4">
+        <!-- Beta button -->
+        <a
+            href="/app/dashboard"
+            class="bg-foreground text-background px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full w-full"
+            >beta →</a
+        >
+    </div>
 </div>
 
 <script>
-function toggleMobileMenu() {
-  const menu = document.getElementById('mobile-menu');
-  menu.classList.toggle('hidden');
-}
+    function toggleMobileMenu() {
+        const menu = document.getElementById("mobile-menu");
+        menu.classList.toggle("hidden");
+    }
 
-// Close dropdown when clicking outside
-document.addEventListener('click', function(event) {
-  const menu = document.getElementById('mobile-menu');
-  const toggle = document.getElementById('mobile-menu-toggle');
-  
-  if (!menu.contains(event.target) && !toggle.contains(event.target) && !menu.classList.contains('hidden')) {
-    menu.classList.add('hidden');
-  }
-});
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function (event) {
+        const menu = document.getElementById("mobile-menu");
+        const toggle = document.getElementById("mobile-menu-toggle");
+
+        if (
+            !menu.contains(event.target) &&
+            !toggle.contains(event.target) &&
+            !menu.classList.contains("hidden")
+        ) {
+            menu.classList.add("hidden");
+        }
+    });
 </script>
 
-
 <!-- Main content area -->
-<main id="content">
-    {{ content|safe }}
-</main>
+<main id="content">{{ content|safe }}</main>
 
-{{ footer() }}
-{% endblock %}
+{{ footer() }} {% endblock %}

@@ -26,7 +26,8 @@
     "dev": "bunchee src/index.ts --watch",
     "fmt": "prettier --write \"src/**/*.ts\" --config ../../.prettierrc",
     "fmt:check": "prettier --check \"src/**/*.ts\" --config ../../.prettierrc",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
     "@quotientjs/error": "^0.1.0",

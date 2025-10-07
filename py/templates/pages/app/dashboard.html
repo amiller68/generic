@@ -26,8 +26,8 @@
     <div>
         {% set actions_content %}
             <ul class="space-y-2">
-                <li><a href="/app/settings" class="uk-link">Account Settings</a></li>
-                <li><a href="/app/new" class="uk-link">Create New Item</a></li>
+                <li><a href="/settings" class="uk-link">Account Settings</a></li>
+                <li><a href="/new" class="uk-link">Create New Item</a></li>
                 <li><a href="/api/v0/auth/whoami" class="uk-link-muted text-sm">View API Response</a></li>
             </ul>
         {% endset %}
@@ -37,7 +37,7 @@
     <div class="md:col-span-2">
         {% set activity_content %}
             <p class="text-muted-foreground">No recent activity. Start by creating your first item!</p>
-            <a href="/app/new" class="uk-button uk-button-primary mt-4">
+            <a href="/new" class="uk-button uk-button-primary mt-4">
                 <uk-icon icon="plus" class="mr-2"></uk-icon>
                 Create New Item
             </a>

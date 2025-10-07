@@ -18,7 +18,7 @@ variable "size" {
 variable "image" {
   description = "The droplet image ID or slug"
   type        = string
-  default     = "ubuntu-22-04-x64"
+  default     = "ubuntu-24-04-x64"
 }
 
 variable "ssh_keys" {

@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# Script to run development servers for multiple projects in tmux
+
+set -o errexit
+set -o nounset
+
+# Points back to the project root
+export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+# Source utils for logging
+source "$PROJECT_ROOT/bin/utils"
+
+# Configuration
+SESSION_NAME="krondor-dev"
+PROJECTS=("py" "ts")
+
+# Parse arguments
+SELECTED_PROJECTS=()
+KILL_SESSION=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --kill|-k)
+      KILL_SESSION=true
+      shift
+      ;;
+    --py)
+      SELECTED_PROJECTS+=("py")
+      shift
+      ;;
+    --ts)
+      SELECTED_PROJECTS+=("ts")
+      shift
+      ;;
+    --help|-h)
+      echo "Usage: $0 [options]"
+      echo ""
+      echo "Run development servers for projects in tmux panes"
+      echo ""
+      echo "Options:"
+      echo "  --py              Run only Python dev server"
+      echo "  --ts              Run only TypeScript dev server"
+      echo "  -k, --kill        Kill existing dev session"
+      echo "  -h, --help        Show this help message"
+      echo ""
+      echo "Examples:"
+      echo "  $0                Start all dev servers in tmux"
+      echo "  $0 --py           Start only Python dev server"
+      echo "  $0 --py --ts      Start both servers (same as no args)"
+      echo "  $0 --kill         Kill the dev tmux session"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Use --help for usage information"
+      exit 1
+      ;;
+  esac
+done
+
+# If no projects selected, use all
+if [ ${#SELECTED_PROJECTS[@]} -eq 0 ]; then
+  SELECTED_PROJECTS=("${PROJECTS[@]}")
+fi
+
+# Kill existing session if requested
+if [ "$KILL_SESSION" = true ]; then
+  if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+    print_info "Killing existing tmux session: $SESSION_NAME"
+    tmux kill-session -t "$SESSION_NAME"
+    print_success "Session killed"
+  else
+    print_warning "No session named '$SESSION_NAME' found"
+  fi
+  exit 0
+fi
+
+# Check if tmux is installed
+if ! command -v tmux &> /dev/null; then
+  print_error "tmux is not installed. Install it with: brew install tmux"
+  exit 1
+fi
+
+# Kill existing session if it exists
+if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+  print_warning "Existing session '$SESSION_NAME' found. Killing it..."
+  tmux kill-session -t "$SESSION_NAME"
+fi
+
+print_info "Starting development servers in tmux session: $SESSION_NAME"
+
+# Create new session with first project
+FIRST_PROJECT="${SELECTED_PROJECTS[0]}"
+print_info "Creating tmux session with $FIRST_PROJECT..."
+tmux new-session -d -s "$SESSION_NAME" -n "$FIRST_PROJECT" -c "$PROJECT_ROOT/$FIRST_PROJECT"
+tmux send-keys -t "$SESSION_NAME:0" "make dev; exit" C-m
+
+# Add remaining projects as new panes
+for i in "${!SELECTED_PROJECTS[@]}"; do
+  if [ $i -eq 0 ]; then
+    continue  # Skip first project (already created)
+  fi
+
+  PROJECT="${SELECTED_PROJECTS[$i]}"
+  print_info "Adding pane for $PROJECT..."
+
+  # Split the window
+  tmux split-window -t "$SESSION_NAME" -c "$PROJECT_ROOT/$PROJECT"
+
+  # Send the dev command (exit after completion)
+  tmux send-keys -t "$SESSION_NAME" "make dev; exit" C-m
+
+  # Tile the panes evenly
+  tmux select-layout -t "$SESSION_NAME" tiled
+done
+
+print_success "Dev servers started in tmux session"
+print_info "Attach with: tmux attach -t $SESSION_NAME"
+print_info "Kill with: $0 --kill"
+
+# Attach to the session
+tmux attach -t "$SESSION_NAME"
