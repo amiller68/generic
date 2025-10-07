@@ -82,13 +82,18 @@ export SERVER_IP=$("$PROJECT_ROOT/bin/iac" "$STAGE" output -raw server_ip 2>/dev
 export SSH_PRIVATE_KEY=$("$PROJECT_ROOT/bin/iac" "$STAGE" output -raw ssh_private_key 2>/dev/null | tail -n -13 || echo "")
 export DOCKER_HUB_USERNAME=$("$PROJECT_ROOT/bin/vault" read DOCKER_HUB_USERNAME)
 export PROJECT_NAME=$PROJECT_NAME
-# write the ssh private key to a temp file with proper permissions
-SSH_PRIVATE_KEY_FILE=$(mktemp)
-echo "$SSH_PRIVATE_KEY" > "$SSH_PRIVATE_KEY_FILE"
-chmod 600 "$SSH_PRIVATE_KEY_FILE"
-export SSH_PRIVATE_KEY_FILE
-# make it so that the temp file is *ALWAYS* removed even if the script exits abnormally
-trap 'print_info "Cleaning up SSH private key file" && rm "$SSH_PRIVATE_KEY_FILE"' EXIT
+# Only write SSH key file if not in CI
+if [[ -z "${CI:-}" ]]; then
+    # Local: Use key file
+    SSH_PRIVATE_KEY_FILE="$PROJECT_ROOT/.kamal/ssh_key"
+    echo "$SSH_PRIVATE_KEY" > "$SSH_PRIVATE_KEY_FILE"
+    chmod 600 "$SSH_PRIVATE_KEY_FILE"
+    export SSH_PRIVATE_KEY_FILE
+    trap 'print_info "Cleaning up SSH private key file" && rm -f "$SSH_PRIVATE_KEY_FILE"' EXIT
+else
+    # CI: SSH agent is already set up, don't export SSH_PRIVATE_KEY_FILE
+    print_info "Running in CI - using SSH agent for authentication"
+fi
 
 # Determine the hostname for the service given the service name and stage
 HOST_NAME=$(get_service_hostname "$SERVICE" "$STAGE")
