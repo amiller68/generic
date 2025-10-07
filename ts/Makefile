@@ -41,10 +41,15 @@ lint: ## Run linter
 check: fmt-check types test ## Run all checks
 
 .PHONY: clean
-clean: ## Clean build artifacts and dependencies
+clean: ## Clean build artifacts, dependencies, and node_modules
+	@echo "Cleaning build artifacts and turbo cache..."
 	@pnpm clean
 	@echo "Cleaning built asset symlinks..."
 	@rm -f apps/web/public/favicon.ico apps/web/public/favicon.png apps/web/public/icon.png apps/web/public/icon.svg
+	@echo "Cleaning node_modules..."
+	@rm -rf node_modules apps/*/node_modules packages/*/node_modules
+	@echo "Cleaning turbo cache..."
+	@rm -rf .turbo
 	@echo "✓ Clean complete"
 
 .PHONY: styles

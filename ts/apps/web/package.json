@@ -9,7 +9,8 @@
     "check-types": "tsc --noEmit",
     "fmt": "prettier --write \"src/**/*.{ts,tsx}\" --config ../../.prettierrc",
     "fmt:check": "prettier --check \"src/**/*.{ts,tsx}\" --config ../../.prettierrc",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean": "rm -rf dist .turbo .next"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
