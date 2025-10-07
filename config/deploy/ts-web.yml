@@ -17,7 +17,6 @@ servers:
 ssh:
   user: root
   keys: ["<%= ENV['SSH_PRIVATE_KEY_FILE'] %>"]
-  keys_only: true
 
 # Registry configuration for Docker Hub
 registry:

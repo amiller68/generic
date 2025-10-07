@@ -1,0 +1,321 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-static: ${{ steps.filter.outputs.static }}
+      deploy-ts-web: ${{ steps.filter.outputs.ts-web }}
+      deploy-py: ${{ steps.filter.outputs.py }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            static:
+              - 'static/**'
+              - 'bin/kamal'
+              - 'bin/iac'
+              - 'config/deploy/static.yml'
+              - '.github/workflows/cd.yml'
+            ts-web:
+              - 'ts/**'
+              - 'bin/kamal'
+              - 'bin/iac'
+              - 'config/deploy/ts-web.yml'
+              - '.github/workflows/cd.yml'
+            py:
+              - 'py/**'
+              - 'bin/kamal'
+              - 'bin/iac'
+              - 'config/deploy/py.yml'
+              - '.github/workflows/cd.yml'
+
+  deploy-static:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.deploy-static == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DOCKER_BUILDKIT: 1
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      CI: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.2
+
+      - name: Install Kamal
+        run: gem install kamal --version 2.4.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Verify 1Password Access
+        run: |
+          source bin/vault
+          echo "Testing 1Password access..."
+          op whoami
+
+      - name: Initialize Terraform
+        run: bin/iac production init -input=false
+
+      - name: Setup SSH Agent
+        run: |
+          # Create .kamal directory for any temporary files
+          mkdir -p .kamal
+          chmod 700 .kamal
+
+          # Get SSH key from Terraform
+          echo "Getting SSH key from Terraform..."
+          SSH_KEY=$(bin/iac production output -raw ssh_private_key 2>&1)
+
+          # Debug output
+          echo "Output lines: $(echo "$SSH_KEY" | wc -l)"
+
+          # Verify we got a key
+          if [ -z "$SSH_KEY" ] || ! echo "$SSH_KEY" | grep -q "BEGIN.*PRIVATE KEY"; then
+            echo "Error: Failed to retrieve valid SSH key from Terraform"
+            echo "Got: $SSH_KEY"
+            exit 1
+          fi
+
+          echo "Successfully retrieved SSH key"
+
+          # Start SSH agent
+          eval $(ssh-agent -s)
+
+          # Add key to agent
+          echo "Adding SSH key to agent..."
+          ssh-add - <<< "$SSH_KEY"
+
+          # Make agent available to subsequent steps
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
+
+          # Verify key was added
+          echo "Keys in agent:"
+          ssh-add -l
+
+      - name: Setup SSH config
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          cat >> ~/.ssh/config <<EOF
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            BatchMode yes
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy Static site
+        run: |
+          bin/kamal static production deploy
+
+  deploy-ts-web:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.deploy-ts-web == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DOCKER_BUILDKIT: 1
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      CI: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.2
+
+      - name: Install Kamal
+        run: gem install kamal --version 2.4.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Verify 1Password Access
+        run: |
+          source bin/vault
+          echo "Testing 1Password access..."
+          op whoami
+
+      - name: Initialize Terraform
+        run: bin/iac production init -input=false
+
+      - name: Setup SSH Agent
+        run: |
+          # Create .kamal directory for any temporary files
+          mkdir -p .kamal
+          chmod 700 .kamal
+
+          # Get SSH key from Terraform
+          echo "Getting SSH key from Terraform..."
+          SSH_KEY=$(bin/iac production output -raw ssh_private_key 2>&1)
+
+          # Debug output
+          echo "Output lines: $(echo "$SSH_KEY" | wc -l)"
+
+          # Verify we got a key
+          if [ -z "$SSH_KEY" ] || ! echo "$SSH_KEY" | grep -q "BEGIN.*PRIVATE KEY"; then
+            echo "Error: Failed to retrieve valid SSH key from Terraform"
+            echo "Got: $SSH_KEY"
+            exit 1
+          fi
+
+          echo "Successfully retrieved SSH key"
+
+          # Start SSH agent
+          eval $(ssh-agent -s)
+
+          # Add key to agent
+          echo "Adding SSH key to agent..."
+          ssh-add - <<< "$SSH_KEY"
+
+          # Make agent available to subsequent steps
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
+
+          # Verify key was added
+          echo "Keys in agent:"
+          ssh-add -l
+
+      - name: Setup SSH config
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          cat >> ~/.ssh/config <<EOF
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            BatchMode yes
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy TS Web app
+        run: |
+          bin/kamal ts-web production deploy
+
+  deploy-py:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.deploy-py == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DOCKER_BUILDKIT: 1
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      CI: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.2
+
+      - name: Install Kamal
+        run: gem install kamal --version 2.4.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Verify 1Password Access
+        run: |
+          source bin/vault
+          echo "Testing 1Password access..."
+          op whoami
+
+      - name: Initialize Terraform
+        run: bin/iac production init -input=false
+
+      - name: Setup SSH Agent
+        run: |
+          # Create .kamal directory for any temporary files
+          mkdir -p .kamal
+          chmod 700 .kamal
+
+          # Get SSH key from Terraform
+          echo "Getting SSH key from Terraform..."
+          SSH_KEY=$(bin/iac production output -raw ssh_private_key 2>&1)
+
+          # Debug output
+          echo "Output lines: $(echo "$SSH_KEY" | wc -l)"
+
+          # Verify we got a key
+          if [ -z "$SSH_KEY" ] || ! echo "$SSH_KEY" | grep -q "BEGIN.*PRIVATE KEY"; then
+            echo "Error: Failed to retrieve valid SSH key from Terraform"
+            echo "Got: $SSH_KEY"
+            exit 1
+          fi
+
+          echo "Successfully retrieved SSH key"
+
+          # Start SSH agent
+          eval $(ssh-agent -s)
+
+          # Add key to agent
+          echo "Adding SSH key to agent..."
+          ssh-add - <<< "$SSH_KEY"
+
+          # Make agent available to subsequent steps
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
+
+          # Verify key was added
+          echo "Keys in agent:"
+          ssh-add -l
+
+      - name: Setup SSH config
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          cat >> ~/.ssh/config <<EOF
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            BatchMode yes
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy Python app
+        run: |
+          bin/kamal py production deploy
