@@ -1,5 +1,0 @@
-# HCP Vault configuration
-vault:
-  # Project ID from HCP
-  # TODO: Replace with your actual project ID
-  project_id: a9087abb-c3b8-405c-b77f-f45e9bed9d09

@@ -1,46 +1,48 @@
-# Use an official Python runtime as the base image
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+# NOTE: Run 'make styles-py' before building this image
+# This Dockerfile expects pre-built static assets in py/static/
 
-# Set the working directory in the container
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS app
+
 WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the bin scripts
-COPY bin/ ./bin/
+# Copy the bin scripts from platform root (scripts expect to be 2 levels deep)
+COPY bin/ ../bin/
+COPY py/bin/ ./bin/
 
-# Make sure the scripts are executable
-RUN chmod +x ./bin/*
+# Make sure the scripts are executable (including subdirectories)
+RUN chmod +x ../bin/* && \
+    find ./bin -type f -name "*.sh" -exec chmod +x {} \;
 
 # Copy the requirements file into the container
-COPY uv.lock .
-COPY pyproject.toml .
+COPY py/uv.lock .
+COPY py/pyproject.toml .
 
 # Install the Python dependencies
-RUN /app/bin/install.sh
-# TODO: add migration back in
+RUN uv sync
+
 # Copy the application code
-COPY src/ ./src/
+COPY py/src/ ./src/
 
 # Copy the alembic artifacts
-COPY alembic/ ./alembic/
-COPY alembic.ini ./alembic.ini
+COPY py/alembic/ ./alembic/
+COPY py/alembic.ini ./alembic.ini
 
-# Copy the static assets
-COPY static/ ./static/
+# Copy pre-built static assets (run 'make styles-py' first)
+COPY py/static/ ./static/
 
 # Copy the html templates
-COPY templates/ ./templates/
+COPY py/templates/ ./templates/
 
-# NOTE: you must set the DATABASE_PATH environment variable to the path to the database file
 # Create a startup script
-# TODO: add migration back in
 RUN echo '#!/bin/bash' > /app/start.sh && \
-    echo '/app/bin/migrate.sh' >> /app/start.sh && \
-    echo '/app/bin/run.sh' >> /app/start.sh && \
+    echo '/app/bin/db.sh migrate' >> /app/start.sh && \
+    echo '/app/bin/app/run.sh' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Expose the port the app runs on

@@ -1,27 +1,43 @@
 <div class="flex min-h-screen items-center justify-center p-4 md:p-10">
     <div class="w-full max-w-sm">
         <div class="mb-6 flex justify-center">
-            <a href="/">
-                <img src="/static/icon.svg" alt="generic" class="h-12" />
+            <a
+                href="/"
+                class="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+                <img src="/static/icon.svg" alt="Generic" class="h-12" />
+                <span class="text-2xl font-bold">Generic</span>
             </a>
         </div>
         <div class="space-y-1.5 text-center">
             <h1 class="uk-h4">Welcome back.</h1>
-            <p>Don't have an account? <a class="uk-link" href="/auth/google/login">Sign up</a></p>
+            <p>
+                Don't have an account?
+                <a class="uk-link" href="/auth/google/login">Sign up</a>
+            </p>
         </div>
-        
+
         <div class="mt-6 space-y-6">
             <div
                 class="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border"
             >
-                <span class="text-muted-foreground relative z-10 bg-background px-2">
+                <span
+                    class="text-muted-foreground relative z-10 bg-background px-2"
+                >
                     Sign in with
                 </span>
             </div>
-            
+
             <div class="grid gap-4">
-                <a href="/auth/google/login" class="uk-button uk-button-default uk-width-1-1 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 mr-2">
+                <a
+                    href="/auth/google/login"
+                    class="uk-button uk-button-default uk-width-1-1 flex items-center justify-center"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        class="w-5 h-5 mr-2"
+                    >
                         <path
                             d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
                             fill="currentColor"
@@ -30,11 +46,19 @@
                     <span>Continue with Google</span>
                 </a>
             </div>
-            
-            <div class="text-muted-foreground uk-text-sm text-balance text-center">
+
+            <div
+                class="text-muted-foreground uk-text-sm text-balance text-center"
+            >
                 By clicking continue, you agree to our
                 <a class="uk-link" href="#">Terms of Service</a> and
                 <a class="uk-link" href="#">Privacy Policy</a>.
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="/" class="uk-link text-sm">
+                    ← Back to home
+                </a>
             </div>
         </div>
     </div>

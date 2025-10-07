@@ -1,6 +1,0 @@
-# Vault configuration
-vault:
-  apps:
-    # TODO (amiller68): this should be configurable
-    dev: generic-dev
-    # TODO (amiller68): add staging and production app names

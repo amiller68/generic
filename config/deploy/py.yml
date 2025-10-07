@@ -1,59 +1,66 @@
-# Kamal deploy configuration for TypeScript Web service
-service: generic-py
+service: <%= ENV['PROJECT_NAME'] %>-py
 
-# NOTE: this must match the name you passed to the container registry module
-# Container image
-image: "<%= ENV['REGISTRY_NAME'] %>/generic-py"
+# NOTE (amiller68): do not change this!
+# It is important that this is kept in sync with
+#  the name of the service as described in the file
+#  name.
+# i.e. if the file name is py.yml, then the service name must be <%= ENV['PROJECT_NAME'] %>-py
+# Container image using Docker Hub
+image: <%= ENV['DOCKER_HUB_USERNAME'] %>/<%= ENV['PROJECT_NAME'] %>-py
 
 # Deploy to these servers
 servers:
   web:
-    - "<%= ENV['DROPLET_IP'].strip %>"
+    - "<%= ENV['SERVER_IP'].strip %>"
 
-# SSH configuration  
+# SSH configuration
 ssh:
   user: root
-  key_data: ["<%= ENV['SSH_PRIVATE_KEY'] %>"]
+  keys: ["<%= ENV['SSH_PRIVATE_KEY_FILE'] %>"]
+  keys_only: true
 
-# Registry configuration
+# Registry configuration for Docker Hub
 registry:
-  server: "<%= ENV['REGISTRY_ENDPOINT'] %>"
-  username: "<%= ENV['DOCKERHUB_USERNAME'] %>"
+  username: <%= ENV['DOCKER_HUB_USERNAME'] %>
   password:
-    - DOCKERHUB_TOKEN
+    - DOCKER_HUB_TOKEN
 
 # Builder configuration
 builder:
   dockerfile: py/Dockerfile
-  context: "py"
+  context: "."
   arch: amd64
 
 # Proxy configuration for SSL
 proxy:
   ssl: true
-  host: py.generic.krondor.org
+  host: <%= ENV['HOST_NAME'] %>
   app_port: 8000
+  healthcheck:
+    path: /up
 
 # Environment variables
 env:
   clear:
-    POSTGRES_URL: "postgresql://generic_user:generic_pass@generic-py-postgres:5432/generic_py"
-    HOST_NAME: https://py.generic.krondor.org
-    AUTH_REDIRECT_URI: https://py.generic.krondor.org/auth/google/callback
+    POSTGRES_URL: postgresql://postgres:postgres@<%= ENV['PROJECT_NAME'] %>-py-postgres:5432/postgres
+    # TODO (amiller68): this env is closer to DOMAIN_NAME in practice,
+    #  since i have to add the scheme here
+    HOST_NAME: https://<%= ENV['HOST_NAME'] %>
+    DEBUG: false
   secret:
-    - GOOGLE_CLIENT_ID
-    - GOOGLE_CLIENT_SECRET
+    - GOOGLE_O_AUTH_CLIENT_ID
+    - GOOGLE_O_AUTH_CLIENT_SECRET
 
 # Accessories (PostgreSQL database - internal only)
 accessories:
   postgres:
     image: postgres:17-alpine
-    host: "<%= ENV['DROPLET_IP'].strip %>"
+    host: "<%= ENV['SERVER_IP'].strip %>"
     port: "5432:5432"
     env:
       clear:
-        POSTGRES_DB: generic_py
-        POSTGRES_USER: generic_user
-        POSTGRES_PASSWORD: generic_pass
+        POSTGRES_DB: postgres
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
     directories:
       - data:/var/lib/postgresql/data

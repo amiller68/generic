@@ -3,3 +3,9 @@ __pycache__
 .ruff_cache
 .pytest_cache
 .mypy_cache
+
+# Copied branding assets (source is in ../branding/assets/)
+static/favicon.ico
+static/favicon.png
+static/icon.png
+static/icon.svg

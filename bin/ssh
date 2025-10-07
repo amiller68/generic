@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# ssh - SSH into infrastructure servers
+# Automatically loads SSH keys from Terraform outputs
+
+set -euo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+source "$PROJECT_ROOT/bin/utils"
+source "$PROJECT_ROOT/bin/config"
+source "$PROJECT_ROOT/bin/vault"
+
+# Function to show usage
+usage() {
+    echo -e "${YELLOW}SSH Connection Tool${NC}"
+    echo ""
+    echo "Usage: $0 <stage> [user]"
+    echo ""
+    echo " Where <stage> is one of the following:"
+    echo "  ${STAGES}"
+    echo " And [user] is optional (defaults to 'root')"
+    echo ""
+    echo "This will SSH into the server for the given stage"
+    echo " using the SSH key from Terraform outputs"
+    echo ""
+    echo "Examples:"
+    echo "  $0 production           # SSH as root to production server"
+    echo "  $0 production ubuntu    # SSH as ubuntu to production server"
+    echo ""
+    echo "Environment:"
+    echo "  Stage: ${STAGE:-production} (set with STAGE env var)"
+    exit 1
+}
+
+# Check arguments
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+STAGE="$1"
+USER="${2:-root}"
+
+# Validate stage
+if ! is_in_list "$STAGES" "$STAGE"; then
+    print_error "Unknown stage: $STAGE"
+    echo "Available stages: $STAGES"
+    exit 1
+fi
+
+# Container registry stage not supported
+if [[ "$STAGE" == "container-registry" ]]; then
+    print_error "Container registry stage does not have servers to SSH into"
+    exit 1
+fi
+
+# Get server IP and SSH key from Terraform
+print_info "Fetching server information for $STAGE..."
+SERVER_IP=$("$PROJECT_ROOT/bin/iac" "$STAGE" output -raw server_ip 2>/dev/null | tail -n 1 || echo "")
+SSH_PRIVATE_KEY=$("$PROJECT_ROOT/bin/iac" "$STAGE" output -raw ssh_private_key 2>/dev/null | tail -n -13 || echo "")
+
+if [[ -z "$SERVER_IP" ]]; then
+    print_error "Could not determine server IP for stage: $STAGE"
+    exit 1
+fi
+
+if [[ -z "$SSH_PRIVATE_KEY" ]]; then
+    print_error "Could not retrieve SSH private key for stage: $STAGE"
+    exit 1
+fi
+
+# Write SSH private key to temp file
+SSH_PRIVATE_KEY_FILE=$(mktemp)
+echo "$SSH_PRIVATE_KEY" > "$SSH_PRIVATE_KEY_FILE"
+chmod 600 "$SSH_PRIVATE_KEY_FILE"
+
+# Always clean up the temp file
+trap 'print_info "Cleaning up SSH private key file" && rm -f "$SSH_PRIVATE_KEY_FILE"' EXIT
+
+print_info "Connecting to $USER@$SERVER_IP ($STAGE)"
+
+# SSH into the server
+ssh -i "$SSH_PRIVATE_KEY_FILE" \
+    -o StrictHostKeyChecking=no \
+    -o UserKnownHostsFile=/dev/null \
+    -o LogLevel=ERROR \
+    "$USER@$SERVER_IP"

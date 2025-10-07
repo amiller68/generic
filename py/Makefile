@@ -3,23 +3,11 @@ help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
 	@echo 'Available targets:'
-	@echo '  dev: Run development server'
-	@echo '  install: Install dependencies'
-	@echo '  build: Build the project'
-	@echo '  test: Run tests'
-	@echo '  lint: Run linter (ruff)'
-	@echo '  fmt: Format code (black)'
-	@echo '  fmt-check: Check code formatting'
-	@echo '  types: Check types (mypy/pyright)'
-	@echo '  check: Run all checks'
-	@echo '  docker-build: Build Docker image'
-	@echo '  clean: Clean build artifacts'
-	@echo '  tailwind: Build Tailwind CSS'
-	@echo '  tailwind-watch: Watch Tailwind CSS'
+	@awk 'BEGIN {FS = ":.*##"; printf "\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  %-20s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
 .PHONY: dev
-dev: ## Run development server
-	@./bin/dev.sh
+dev: styles ## Run development server (builds styles first)
+	@./bin/app/dev.sh
 
 .PHONY: install
 install: ## Install dependencies
@@ -31,31 +19,35 @@ build: ## Build the project
 
 .PHONY: test
 test: ## Run tests
-	@./bin/test.sh
+	@./bin/ci/test.sh
 
 .PHONY: lint
 lint: ## Run linter (ruff)
-	@./bin/lint.sh
+	@./bin/ci/lint.sh
 
 .PHONY: fmt
 fmt: ## Format code (black)
-	@./bin/fmt.sh
+	@./bin/ci/fmt.sh
 
 .PHONY: fmt-check
 fmt-check: ## Check code formatting
-	@./bin/fmt.sh --check
+	@./bin/ci/fmt.sh --check
 
 .PHONY: types
 types: ## Check types (mypy/pyright)
-	@./bin/types.sh
+	@./bin/ci/types.sh
+
+# Database management - pass all arguments after 'db' to the postgres script
+.PHONY: db
+db: ## Database management - pass all arguments after 'db' to the postgres script
+	@./bin/db.sh $(filter-out $@,$(MAKECMDGOALS))
+
+# Catch additional arguments to db command
+%:
+	@:
 
 .PHONY: check
 check: fmt-check lint types test ## Run all checks
-
-# TODO (config): target with configurable image name
-.PHONY: docker-build
-docker-build: ## Build Docker image
-	@docker build -t py-app .
 
 .PHONY: clean
 clean: ## Clean build artifacts
@@ -69,11 +61,16 @@ clean: ## Clean build artifacts
 	@find . -type f -name "*.pyc" -delete
 	@find . -type f -name ".coverage" -delete
 	@find . -type f -name ".venv" -delete
+	@echo "Cleaning built styles and assets..."
+	@rm -rf static/css/
+	@rm -f static/*.ico static/*.png static/*.svg
+	@rm -rf .venv
+	@echo "✓ Clean complete"
 
-.PHONY: tailwind
-tailwind: ## Build Tailwind CSS
-	@./bin/tailwind.sh
+.PHONY: styles
+styles: ## Build styles with Tailwind CSS and copy assets (USE_SYMLINKS=1 for symlinks)
+	@./bin/styles.sh
 
-.PHONY: tailwind-watch
-tailwind-watch: ## Watch Tailwind CSS
-	@./bin/tailwind.sh -w
+.PHONY: styles-watch
+styles-watch: ## Watch and rebuild styles on changes
+	@./bin/styles.sh --watch
