@@ -35,6 +35,8 @@ COPY py/alembic.ini ./alembic.ini
 
 # Copy pre-built static assets (run 'make styles-py' first)
 COPY py/static/ ./static/
+# Copy branding assets to static directory (replace symlinks)
+COPY branding/assets/ ./static/
 
 # Copy the html templates
 COPY py/templates/ ./templates/
