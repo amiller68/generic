@@ -1,0 +1,66 @@
+{% extends "layouts/admin.html" %}
+
+{% block title %}Widgets - Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold">Widget Management</h1>
+            <p class="text-muted-foreground">{{ total_count }} total widgets</p>
+        </div>
+        <a href="/_admin/widgets/new"
+           hx-get="/_admin/widgets/new"
+           hx-target="#widget-form-modal"
+           hx-swap="innerHTML"
+           class="uk-button uk-button-primary">
+            <uk-icon icon="plus" class="w-4 h-4 mr-1"></uk-icon>
+            New Widget
+        </a>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="uk-card uk-card-default uk-card-body">
+        <form hx-get="/_admin/widgets"
+              hx-target="#widgets-table"
+              hx-push-url="true"
+              hx-swap="innerHTML"
+              class="flex gap-2 flex-wrap">
+            <input type="text"
+                   name="search"
+                   value="{{ search }}"
+                   class="uk-input flex-1 min-w-48"
+                   placeholder="Search by name..." />
+            <select name="status" class="uk-select w-40">
+                <option value="">All Statuses</option>
+                {% for s in statuses %}
+                <option value="{{ s }}" {% if s == status %}selected{% endif %}>
+                    {{ s|capitalize }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="uk-button uk-button-primary">
+                <uk-icon icon="search" class="w-4 h-4"></uk-icon>
+                Search
+            </button>
+            {% if search or status %}
+            <a href="/_admin/widgets"
+               hx-get="/_admin/widgets"
+               hx-target="#widgets-table"
+               hx-push-url="true"
+               class="uk-button uk-button-default">
+                Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Widgets Table -->
+    <div id="widgets-table">
+        {% include "pages/admin/widgets/table.html" %}
+    </div>
+
+    <!-- Modal container for forms -->
+    <div id="widget-form-modal"></div>
+</div>
+{% endblock %}

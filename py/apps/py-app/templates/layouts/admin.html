@@ -1,0 +1,87 @@
+{% extends "layouts/base.html" %}
+
+{% block body %}
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-muted border-r border-border flex flex-col">
+        <div class="p-4 border-b border-border">
+            <h1 class="text-xl font-bold text-primary">Generic Admin</h1>
+            <p class="text-sm text-muted-foreground">Console</p>
+        </div>
+
+        <nav class="p-2 flex-1">
+            <ul class="space-y-1">
+                <li>
+                    <a href="/_admin/"
+                       class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors {% if request.url.path == '/_admin' or request.url.path == '/_admin/' %}bg-accent text-accent-foreground{% endif %}">
+                        <uk-icon icon="home" class="w-4 h-4"></uk-icon>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="/_admin/users"
+                       class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors {% if request.url.path.startswith('/_admin/users') %}bg-accent text-accent-foreground{% endif %}">
+                        <uk-icon icon="users" class="w-4 h-4"></uk-icon>
+                        Users
+                    </a>
+                </li>
+                <li>
+                    <a href="/_admin/widgets"
+                       class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors {% if request.url.path.startswith('/_admin/widgets') %}bg-accent text-accent-foreground{% endif %}">
+                        <uk-icon icon="box" class="w-4 h-4"></uk-icon>
+                        Widgets
+                    </a>
+                </li>
+                <li>
+                    <a href="/_admin/cron-jobs"
+                       class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors {% if request.url.path.startswith('/_admin/cron-jobs') %}bg-accent text-accent-foreground{% endif %}">
+                        <uk-icon icon="clock" class="w-4 h-4"></uk-icon>
+                        Cron Jobs
+                    </a>
+                </li>
+                <li>
+                    <a href="/_admin/chat"
+                       class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors {% if request.url.path.startswith('/_admin/chat') %}bg-accent text-accent-foreground{% endif %}">
+                        <uk-icon icon="message-square" class="w-4 h-4"></uk-icon>
+                        AI Chat
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-8 pt-4 border-t border-border">
+                <ul class="space-y-1">
+                    <li>
+                        <a href="/app/dashboard"
+                           class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground">
+                            <uk-icon icon="arrow-left" class="w-4 h-4"></uk-icon>
+                            Back to App
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/auth/logout"
+                           class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors text-muted-foreground">
+                            <uk-icon icon="log-out" class="w-4 h-4"></uk-icon>
+                            Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Current user info -->
+        <div class="p-4 border-t border-border bg-muted">
+            <p class="text-sm text-muted-foreground truncate">{{ user.email }}</p>
+            <span class="uk-badge uk-badge-primary text-xs">Admin</span>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="admin-content" class="flex-1 p-8 overflow-auto">
+        {% if content %}
+            {{ content|safe }}
+        {% else %}
+            {% block content %}{% endblock %}
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

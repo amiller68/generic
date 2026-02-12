@@ -1,0 +1,54 @@
+{% extends "layouts/admin.html" %}
+
+{% block title %}Cron Jobs - Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold">Cron Job Runs</h1>
+            <p class="text-muted-foreground">{{ total_count }} total runs</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="uk-card uk-card-default uk-card-body">
+        <form hx-get="/_admin/cron-jobs"
+              hx-target="#main-table"
+              hx-push-url="true"
+              hx-swap="innerHTML"
+              class="flex gap-2 flex-wrap">
+            <select name="job_name" class="uk-select w-48">
+                <option value="">All Jobs</option>
+                {% for name in job_names %}
+                <option value="{{ name }}" {% if job_name == name %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="uk-select w-36">
+                <option value="">All Statuses</option>
+                {% for s in statuses %}
+                <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="uk-button uk-button-primary">
+                <uk-icon icon="search" class="w-4 h-4"></uk-icon>
+                Filter
+            </button>
+            {% if job_name or status %}
+            <a href="/_admin/cron-jobs"
+               hx-get="/_admin/cron-jobs"
+               hx-target="#main-table"
+               hx-push-url="true"
+               class="uk-button uk-button-default">
+                Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div id="main-table">
+        {% include "pages/admin/cron_jobs/table.html" %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+<div class="uk-card uk-card-default">
+    <div class="overflow-x-auto">
+        <table class="uk-table uk-table-divider uk-table-hover uk-table-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Public</th>
+                    <th>Created</th>
+                    <th class="w-32">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="widget-rows" hx-ext="sse" sse-connect="/_events/widgets">
+                {% for widget in widgets %}
+                {% include "pages/app/widgets/row.html" %}
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-muted-foreground">
+                        <uk-icon icon="package" class="w-12 h-12 mb-4 opacity-50"></uk-icon>
+                        <p>No widgets yet. Create your first one!</p>
+                        <a href="/app/widgets/new"
+                           hx-get="/app/widgets/new"
+                           hx-target="#main-content"
+                           hx-push-url="true"
+                           class="uk-button uk-button-primary mt-4">
+                            <uk-icon icon="plus" class="w-4 h-4 mr-2"></uk-icon>
+                            New Widget
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="p-4 border-t flex items-center justify-between">
+        <span class="text-sm text-muted-foreground">
+            Page {{ page }} of {{ total_pages }}
+        </span>
+        <div class="flex gap-2">
+            {% if page > 1 %}
+            <a href="/app/widgets?page={{ page - 1 }}&search={{ search }}&status={{ status }}"
+               hx-get="/app/widgets?page={{ page - 1 }}&search={{ search }}&status={{ status }}"
+               hx-target="#widgets-table"
+               hx-push-url="true"
+               class="uk-button uk-button-default uk-button-small">
+                Previous
+            </a>
+            {% endif %}
+            {% if page < total_pages %}
+            <a href="/app/widgets?page={{ page + 1 }}&search={{ search }}&status={{ status }}"
+               hx-get="/app/widgets?page={{ page + 1 }}&search={{ search }}&status={{ status }}"
+               hx-target="#widgets-table"
+               hx-push-url="true"
+               class="uk-button uk-button-default uk-button-small">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

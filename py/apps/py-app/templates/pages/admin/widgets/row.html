@@ -1,0 +1,95 @@
+<tr class="widget-row" id="widget-{{ widget.id }}" sse-swap="widget-updated-{{ widget.id }}" hx-swap="outerHTML">
+    <td>
+        <span class="text-primary font-medium">{{ widget.name }}</span>
+    </td>
+    <td class="text-muted-foreground text-sm max-w-xs truncate">
+        {{ widget.description or '-' }}
+    </td>
+    <td>
+        {% if widget.status == 'active' %}
+        <span class="uk-badge" style="background-color: var(--uk-color-green-500);">Active</span>
+        {% elif widget.status == 'draft' %}
+        <span class="uk-badge" style="background-color: var(--uk-color-amber-500);">Draft</span>
+        {% else %}
+        <span class="uk-badge" style="background-color: var(--uk-color-gray-500);">Archived</span>
+        {% endif %}
+        {% if processing %}
+        <span class="uk-badge uk-badge-secondary ml-1">Processing...</span>
+        {% endif %}
+    </td>
+    <td>
+        <span class="text-muted-foreground">{{ widget.priority }}</span>
+    </td>
+    <td>
+        {% if widget.is_public %}
+        <uk-icon icon="check" class="w-4 h-4 text-green-500"></uk-icon>
+        {% else %}
+        <uk-icon icon="x" class="w-4 h-4 text-muted-foreground"></uk-icon>
+        {% endif %}
+    </td>
+    <td class="text-muted-foreground text-sm">
+        {{ widget.created_at.strftime('%Y-%m-%d') }}
+    </td>
+    <td class="text-right">
+        <div class="flex justify-end gap-1">
+            <!-- Edit -->
+            <button hx-get="/_admin/widgets/{{ widget.id }}/edit"
+                    hx-target="#widget-form-modal"
+                    hx-swap="innerHTML"
+                    class="uk-button uk-button-small uk-button-default"
+                    title="Edit">
+                <uk-icon icon="pencil" class="w-3 h-3"></uk-icon>
+            </button>
+
+            <!-- Status actions -->
+            {% if widget.status == 'draft' %}
+            <button hx-post="/_admin/widgets/{{ widget.id }}/activate"
+                    hx-target="#widget-{{ widget.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Activate this widget?"
+                    class="uk-button uk-button-small uk-button-primary"
+                    title="Activate">
+                <uk-icon icon="check" class="w-3 h-3"></uk-icon>
+            </button>
+            {% elif widget.status == 'active' %}
+            <button hx-post="/_admin/widgets/{{ widget.id }}/archive"
+                    hx-target="#widget-{{ widget.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Archive this widget?"
+                    class="uk-button uk-button-small uk-button-default"
+                    title="Archive">
+                <uk-icon icon="archive" class="w-3 h-3"></uk-icon>
+            </button>
+            {% else %}
+            <button hx-post="/_admin/widgets/{{ widget.id }}/activate"
+                    hx-target="#widget-{{ widget.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Reactivate this widget?"
+                    class="uk-button uk-button-small uk-button-primary"
+                    title="Reactivate">
+                <uk-icon icon="refresh-cw" class="w-3 h-3"></uk-icon>
+            </button>
+            {% endif %}
+
+            <!-- Process (background job) -->
+            <button hx-post="/_admin/widgets/{{ widget.id }}/process"
+                    hx-target="#widget-{{ widget.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Queue this widget for background processing?"
+                    class="uk-button uk-button-small uk-button-secondary"
+                    title="Process">
+                <uk-icon icon="play" class="w-3 h-3"></uk-icon>
+            </button>
+
+            <!-- Delete -->
+            <button hx-delete="/_admin/widgets/{{ widget.id }}"
+                    hx-target="#widget-{{ widget.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Delete '{{ widget.name }}'? This cannot be undone."
+                    class="uk-button uk-button-small uk-button-danger"
+                    title="Delete">
+                <uk-icon icon="trash-2" class="w-3 h-3"></uk-icon>
+            </button>
+        </div>
+    </td>
+</tr>

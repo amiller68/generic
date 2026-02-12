@@ -1,0 +1,37 @@
+<div class="uk-card uk-card-default uk-card-body">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">Service Health</h3>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Database -->
+        <div class="p-4 rounded-lg border {% if health.database.status == 'healthy' %}border-green-500 bg-green-50 dark:bg-green-950{% else %}border-red-500 bg-red-50 dark:bg-red-950{% endif %}">
+            <div class="flex items-center gap-2">
+                {% if health.database.status == 'healthy' %}
+                <uk-icon icon="check" class="w-4 h-4 text-green-600"></uk-icon>
+                {% else %}
+                <uk-icon icon="triangle-alert" class="w-4 h-4 text-red-600"></uk-icon>
+                {% endif %}
+                <span class="font-medium">Database</span>
+            </div>
+            <p class="text-sm mt-1 {% if health.database.status == 'healthy' %}text-green-700 dark:text-green-300{% else %}text-red-700 dark:text-red-300{% endif %}">
+                {{ health.database.message }}
+            </p>
+        </div>
+
+        <!-- Redis -->
+        <div class="p-4 rounded-lg border {% if health.redis.status == 'healthy' %}border-green-500 bg-green-50 dark:bg-green-950{% else %}border-red-500 bg-red-50 dark:bg-red-950{% endif %}">
+            <div class="flex items-center gap-2">
+                {% if health.redis.status == 'healthy' %}
+                <uk-icon icon="check" class="w-4 h-4 text-green-600"></uk-icon>
+                {% else %}
+                <uk-icon icon="triangle-alert" class="w-4 h-4 text-red-600"></uk-icon>
+                {% endif %}
+                <span class="font-medium">Redis</span>
+            </div>
+            <p class="text-sm mt-1 {% if health.redis.status == 'healthy' %}text-green-700 dark:text-green-300{% else %}text-red-700 dark:text-red-300{% endif %}">
+                {{ health.redis.message }}
+            </p>
+        </div>
+    </div>
+</div>

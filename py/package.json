@@ -1,0 +1,19 @@
+{
+  "name": "@generic/py",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev": "turbo run setup --filter=@generic/py-core && turbo run dev dev:worker dev:scheduler",
+    "setup": "turbo run setup",
+    "test": "turbo run test",
+    "fmt": "turbo run fmt",
+    "fmt:check": "turbo run fmt:check",
+    "lint": "turbo run lint",
+    "types": "turbo run types",
+    "check": "turbo run check",
+    "clean": "turbo run clean && rm -rf node_modules .turbo"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.8"
+  }
+}

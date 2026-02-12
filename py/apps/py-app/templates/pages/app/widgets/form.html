@@ -1,0 +1,95 @@
+<div class="max-w-2xl">
+    <div class="mb-6">
+        <a href="/app/widgets"
+           hx-get="/app/widgets"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <uk-icon icon="arrow-left" class="w-4 h-4"></uk-icon>
+            <span>Back to widgets</span>
+        </a>
+    </div>
+
+    <div class="uk-card uk-card-default">
+        <div class="uk-card-header">
+            <h3 class="uk-card-title">
+                {% if widget %}Edit "{{ widget.name }}"{% else %}Create New Widget{% endif %}
+            </h3>
+        </div>
+        <div class="uk-card-body">
+            <form hx-post="{% if widget %}/app/widgets/{{ widget.id }}/edit{% else %}/app/widgets/new{% endif %}"
+                  hx-target="#main-content"
+                  hx-swap="innerHTML"
+                  class="uk-form-stacked">
+
+                <div class="uk-margin">
+                    <label class="uk-form-label" for="name">Name</label>
+                    <div class="uk-form-controls">
+                        <input type="text"
+                               id="name"
+                               name="name"
+                               value="{{ widget.name if widget else '' }}"
+                               required
+                               class="uk-input"
+                               placeholder="My Widget" />
+                    </div>
+                </div>
+
+                <div class="uk-margin">
+                    <label class="uk-form-label" for="description">Description</label>
+                    <div class="uk-form-controls">
+                        <textarea id="description"
+                                  name="description"
+                                  class="uk-textarea"
+                                  rows="3"
+                                  placeholder="Optional description...">{{ widget.description if widget and widget.description else '' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="uk-margin">
+                    <label class="uk-form-label" for="priority">Priority</label>
+                    <div class="uk-form-controls">
+                        <input type="number"
+                               id="priority"
+                               name="priority"
+                               value="{{ widget.priority if widget else 0 }}"
+                               class="uk-input uk-form-width-small" />
+                    </div>
+                    <p class="uk-text-meta uk-margin-small-top">Higher numbers = higher priority</p>
+                </div>
+
+                <div class="uk-margin">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox"
+                               id="is_public"
+                               name="is_public"
+                               value="true"
+                               {% if widget and widget.is_public %}checked{% endif %}
+                               class="uk-checkbox" />
+                        <span>Make this widget public</span>
+                    </label>
+                    <p class="uk-text-meta uk-margin-small-top">Public widgets can be viewed by anyone</p>
+                </div>
+
+                <div class="uk-margin-medium-top pt-4 border-t flex items-center gap-2">
+                    <button type="submit" class="uk-button uk-button-primary inline-flex items-center gap-2">
+                        {% if widget %}
+                        <uk-icon icon="check" class="w-4 h-4"></uk-icon>
+                        <span>Save Changes</span>
+                        {% else %}
+                        <uk-icon icon="plus" class="w-4 h-4"></uk-icon>
+                        <span>Create Widget</span>
+                        {% endif %}
+                    </button>
+                    <a href="/app/widgets"
+                       hx-get="/app/widgets"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="uk-button uk-button-default">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

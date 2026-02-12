@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <title>{% block title %}Generic{% endblock %}</title>
+
+        <!-- Hot reloading for development mode -->
+        <script>
+            if (window.location.hostname === "localhost") {
+                const hotReload = new EventSource("/dev/hot-reload");
+
+                hotReload.addEventListener("connected", function (e) {
+                    console.log("Hot reload connected:", e.data);
+                });
+
+                hotReload.addEventListener("reload", function (e) {
+                    console.log("Hot reload triggered:", e.data);
+                    location.reload();
+                });
+
+                hotReload.onerror = function (e) {
+                    console.error("Hot reload error:", e);
+                    setTimeout(() => {
+                        hotReload.close();
+                        location.reload();
+                    }, 5000);
+                };
+            }
+        </script>
+
+        <!-- Inter font -->
+        <link rel="preconnect" href="https://rsms.me/" />
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+
+        <style>
+            :root {
+                font-family: Inter, sans-serif;
+                font-feature-settings:
+                    "liga" 1,
+                    "calt" 1;
+            }
+            @supports (font-variation-settings: normal) {
+                :root {
+                    font-family: InterVariable, sans-serif;
+                }
+            }
+        </style>
+
+        <!-- Franken UI -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/franken-ui@next/dist/css/core.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/franken-ui@next/dist/css/utilities.min.css"
+        />
+
+        <script>
+            const htmlElement = document.documentElement;
+            const __FRANKEN__ = JSON.parse(
+                localStorage.getItem("__FRANKEN__") || "{}",
+            );
+
+            if (
+                __FRANKEN__.mode === "dark" ||
+                (!__FRANKEN__.mode &&
+                    window.matchMedia("(prefers-color-scheme: dark)").matches)
+            ) {
+                htmlElement.classList.add("dark");
+            } else {
+                htmlElement.classList.remove("dark");
+            }
+
+            // Don't add a default theme - we're using our custom colors
+            if (__FRANKEN__.theme) {
+                htmlElement.classList.add(__FRANKEN__.theme);
+            }
+            htmlElement.classList.add(__FRANKEN__.radii || "uk-radii-md");
+            htmlElement.classList.add(__FRANKEN__.shadows || "uk-shadows-sm");
+            htmlElement.classList.add(__FRANKEN__.font || "uk-font-sm");
+            htmlElement.classList.add(__FRANKEN__.chart || "uk-chart-default");
+        </script>
+
+        <script
+            type="module"
+            src="https://cdn.jsdelivr.net/npm/franken-ui@next/dist/js/core.iife.js"
+        ></script>
+
+        <!-- HTMX -->
+        <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+        <!-- HTMX SSE Extension for real-time updates -->
+        <script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
+
+        <!-- Static Assets -->
+        <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+
+        <!-- Tailwind CSS - Load after Franken UI to ensure our styles take precedence -->
+        <link rel="stylesheet" href="/static/css/main.css" />
+
+        <!-- Connect our CSS variables to Franken UI's theme system -->
+        <style>
+            :root {
+                /* Map our colors to Franken UI's color system */
+                --uk-theme-primary: var(--primary);
+                --uk-theme-primary-foreground: var(--primary-foreground);
+                --uk-theme-secondary: var(--secondary);
+                --uk-theme-secondary-foreground: var(--secondary-foreground);
+                --uk-theme-accent: var(--accent);
+                --uk-theme-accent-foreground: var(--accent-foreground);
+                --uk-theme-muted: var(--muted);
+                --uk-theme-muted-foreground: var(--muted-foreground);
+                --uk-theme-destructive: var(--destructive);
+                --uk-theme-destructive-foreground: var(
+                    --destructive-foreground
+                );
+            }
+        </style>
+
+        {% block head %}{% endblock %}
+    </head>
+    <body class="bg-background text-foreground">
+        {% block body %}{% endblock %}
+
+        <script
+            type="module"
+            src="https://cdn.jsdelivr.net/npm/franken-ui@next/dist/js/icon.iife.js"
+        ></script>
+
+        <!-- Global initialization system -->
+        <script>
+            // Create a global initialization registry
+            window.AppInit = window.AppInit || {
+                handlers: [],
+
+                // Register a handler to be called on initialization
+                register: function (handler) {
+                    this.handlers.push(handler);
+                },
+
+                // Run all registered handlers
+                run: function () {
+                    this.handlers.forEach((handler) => {
+                        try {
+                            handler();
+                        } catch (e) {
+                            console.error(
+                                "Error in initialization handler:",
+                                e,
+                            );
+                        }
+                    });
+                },
+            };
+
+            // Run initializers on regular page load
+            document.addEventListener("DOMContentLoaded", function () {
+                window.AppInit.run();
+            });
+
+            // Run initializers when content is loaded via HTMX
+            document.body.addEventListener("htmx:afterSwap", function (event) {
+                // Small delay to ensure DOM is ready
+                setTimeout(function () {
+                    window.AppInit.run();
+                }, 10);
+            });
+
+            // Also handle htmx:afterSettle for more complex scenarios
+            document.body.addEventListener(
+                "htmx:afterSettle",
+                function (event) {
+                    // Run any deferred initializations
+                    if (window.AppInit.deferred) {
+                        window.AppInit.deferred();
+                    }
+                },
+            );
+        </script>
+    </body>
+</html>

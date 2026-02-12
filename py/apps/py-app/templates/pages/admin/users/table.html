@@ -1,0 +1,70 @@
+<div class="uk-card uk-card-default">
+    <table class="uk-table uk-table-divider uk-table-hover uk-table-middle">
+        <thead>
+            <tr>
+                <th class="w-1/3">Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for target_user in users %}
+            {% include "pages/admin/users/row.html" %}
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center text-muted-foreground py-8">
+                    {% if search %}
+                    No users found matching "{{ search }}"
+                    {% else %}
+                    No users found
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="flex justify-center mt-4">
+    <nav>
+        <ul class="uk-pagination">
+            {% if page > 1 %}
+            <li>
+                <a href="/_admin/users?page={{ page - 1 }}&search={{ search }}"
+                   hx-get="/_admin/users?page={{ page - 1 }}&search={{ search }}"
+                   hx-target="#users-table"
+                   hx-push-url="true">
+                    <span uk-pagination-previous></span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+            <li {% if p == page %}class="uk-active"{% endif %}>
+                <a href="/_admin/users?page={{ p }}&search={{ search }}"
+                   hx-get="/_admin/users?page={{ p }}&search={{ search }}"
+                   hx-target="#users-table"
+                   hx-push-url="true">
+                    {{ p }}
+                </a>
+            </li>
+            {% endfor %}
+
+            {% if page < total_pages %}
+            <li>
+                <a href="/_admin/users?page={{ page + 1 }}&search={{ search }}"
+                   hx-get="/_admin/users?page={{ page + 1 }}&search={{ search }}"
+                   hx-target="#users-table"
+                   hx-push-url="true">
+                    <span uk-pagination-next></span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}

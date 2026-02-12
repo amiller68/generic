@@ -1,0 +1,173 @@
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold">{{ thread.title or "Chat Thread" }}</h1>
+            <p class="text-muted-foreground text-sm">
+                Started {{ thread.created_at.strftime('%b %d, %Y at %H:%M') }}
+            </p>
+        </div>
+        <a href="/_admin/chat" class="uk-button uk-button-default">
+            <span uk-icon="arrow-left"></span> Back to Chats
+        </a>
+    </div>
+
+    <!-- Messages -->
+    <div class="uk-card uk-card-default uk-card-body">
+        <div id="messages" class="space-y-4 max-h-[500px] overflow-y-auto mb-6"
+             {% if completion_id %}
+             hx-ext="sse"
+             sse-connect="/_events/chat/{{ thread.id }}?completion_id={{ completion_id }}"
+             sse-swap="message"
+             hx-target="#streaming-message"
+             hx-swap="innerHTML"
+             {% endif %}>
+            {% for message in thread.messages %}
+                {# Handle both 'kind' and 'type' field names for compatibility #}
+                {% set has_text = namespace(found=false) %}
+                {% for part in message.parts %}
+                    {% set part_type = part.kind if part.kind is defined else part.type %}
+                    {% if part_type == "text" and part.content %}
+                        {% set has_text.found = true %}
+                    {% endif %}
+                {% endfor %}
+                {% if message.role == "user" and has_text.found %}
+                    <div class="flex justify-end">
+                        <div class="max-w-[80%] bg-primary text-primary-foreground rounded-lg p-4">
+                            {% for part in message.parts %}
+                                {% set part_type = part.kind if part.kind is defined else part.type %}
+                                {% if part_type == "text" and part.content %}
+                                    <p class="whitespace-pre-wrap">{{ part.content }}</p>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% elif message.role == "assistant" %}
+                    <div class="flex justify-start">
+                        <div class="max-w-[80%] bg-muted rounded-lg p-4">
+                            {% for part in message.parts %}
+                                {% set part_type = part.kind if part.kind is defined else part.type %}
+                                {% if part_type == "text" %}
+                                    <div class="prose prose-sm dark:prose-invert">
+                                        {{ part.content|safe }}
+                                    </div>
+                                {% elif part_type == "tool_result" %}
+                                    <div class="mt-2 p-3 bg-background rounded border border-border text-sm">
+                                        <p class="text-xs font-medium text-muted-foreground mb-1">
+                                            Tool: {{ part.tool_name }}
+                                        </p>
+                                        <p class="whitespace-pre-wrap">{{ part.result }}</p>
+                                    </div>
+                                {% elif part_type == "tool_call" %}
+                                    <div class="mt-2 p-3 bg-muted/50 rounded border border-border text-sm">
+                                        <p class="text-xs font-medium text-muted-foreground">
+                                            Calling: {{ part.tool_name }}
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            {# Streaming message - inside the messages container #}
+            {% if completion_id %}
+                <div id="streaming-bubble" class="flex justify-start">
+                    <div class="max-w-[80%] bg-muted rounded-lg p-4">
+                        <div id="streaming-message" class="prose prose-sm dark:prose-invert">
+                            <span class="animate-pulse text-muted-foreground">Thinking...</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Input area: Stop button OR Send form -->
+        <form id="input-form" class="flex gap-2"
+              {% if completion_id %}
+              action="/_admin/chat/{{ thread.id }}/cancel"
+              {% else %}
+              action="/_admin/chat/{{ thread.id }}/send"
+              {% endif %}
+              method="post">
+            {% if completion_id %}
+                <div class="flex-1 uk-textarea bg-muted/50 flex items-center justify-center text-muted-foreground text-sm">
+                    Assistant is responding...
+                </div>
+                <button type="submit"
+                        id="stop-btn"
+                        class="uk-button uk-button-danger self-end"
+                        onclick="this.disabled = true; this.innerHTML = 'Stopping...';">
+                    <span uk-icon="close"></span> Stop
+                </button>
+            {% else %}
+                <textarea name="message"
+                          rows="2"
+                          class="uk-textarea flex-1"
+                          placeholder="Type your message..."
+                          required></textarea>
+                <button type="submit" class="uk-button uk-button-primary self-end">
+                    <span uk-icon="chevron-right"></span> Send
+                </button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{% if completion_id %}
+<script>
+    (function() {
+        let completed = false;
+
+        // Handle SSE completion events via htmx:sseMessage
+        document.body.addEventListener('htmx:sseMessage', function(event) {
+            const eventType = event.detail.type;
+            if (eventType === 'completed' || eventType === 'cancelled' || eventType === 'failed') {
+                completed = true;
+                setTimeout(function() {
+                    window.location.href = '/_admin/chat/{{ thread.id }}';
+                }, 100);
+            }
+        });
+
+        // Fallback: poll completion status every 5 seconds
+        const completionId = '{{ completion_id }}';
+        const pollInterval = setInterval(async function() {
+            if (completed) {
+                clearInterval(pollInterval);
+                return;
+            }
+            try {
+                const resp = await fetch('/_admin/chat/{{ thread.id }}/status?completion_id=' + completionId);
+                const data = await resp.json();
+                if (data.status === 'completed' || data.status === 'cancelled' || data.status === 'failed') {
+                    completed = true;
+                    clearInterval(pollInterval);
+                    window.location.href = '/_admin/chat/{{ thread.id }}';
+                }
+            } catch (e) {
+                // Ignore poll errors
+            }
+        }, 5000);
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            clearInterval(pollInterval);
+        });
+
+        // Auto-scroll to bottom
+        const messages = document.getElementById('messages');
+        if (messages) {
+            messages.scrollTop = messages.scrollHeight;
+        }
+    })();
+</script>
+{% else %}
+<script>
+    // Auto-scroll to bottom of messages
+    const messages = document.getElementById('messages');
+    if (messages) {
+        messages.scrollTop = messages.scrollHeight;
+    }
+</script>
+{% endif %}
