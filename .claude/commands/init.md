@@ -174,7 +174,7 @@ Important execution notes:
 
 Point users to these docs for manual customization or deeper understanding:
 
-- `docs/CUSTOMIZING.md` - Manual customization guide
-- `docs/development/MIXING_LANGUAGES.md` - For hybrid setups
+- `docs/customizing/` - Customization guides and patterns
+- `docs/customizing/hybrid-stack.md` - For hybrid setups
 - `py/docs/PYTHON_LIBRARY_PATTERNS.md` - Python patterns
 - `docs/deployment/KAMAL.md` - Deployment guide

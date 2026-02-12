@@ -117,6 +117,13 @@ For detailed patterns and conventions, see the documentation:
 - `docs/setup/INFRASTRUCTURE.md` - Terraform infrastructure
 - `docs/deployment/KAMAL.md` - Deployment guide
 
+### Customization (`docs/customizing/`)
+- `docs/customizing/README.md` - Overview and philosophy
+- `docs/customizing/project-setup.md` - Renaming, domains, .env files
+- `docs/customizing/python-packages.md` - py-core library patterns
+- `docs/customizing/typescript-packages.md` - TypeScript package patterns
+- `docs/customizing/multi-tenancy.md` - SaaS tenant isolation
+
 ## Issue Tracking
 
 Use `/issues` to work with the local issue catalog in `issues/`.
@@ -134,4 +141,4 @@ Available skills:
 
 ## Customization
 
-New to this template? Run `/init` to interactively customize it for your project, or see `docs/CUSTOMIZING.md` for manual customization.
+New to this template? Run `/init` to interactively customize it for your project, or see `docs/customizing/` for manual customization guides.
