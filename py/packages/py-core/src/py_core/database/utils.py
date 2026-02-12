@@ -29,7 +29,7 @@ class StringEnum(TypeDecorator):
     Usage:
         class MyModel(Base):
             status: Mapped[MyStatus] = mapped_column(
-                PgEnum(MyStatus), default=MyStatus.PENDING
+                StringEnum(MyStatus), default=MyStatus.PENDING
             )
     """
 
