@@ -52,6 +52,19 @@ See [py/README.md](./py/README.md) for details.
 - DNS with Cloudflare
 - Automated SSL via Let's Encrypt
 
+## Getting Started
+
+### Using This Template
+
+1. **Fork this repository** to create your own project
+2. **Run `/init`** with Claude Code to interactively customize the template:
+   - Choose your stack (Python, TypeScript, or both)
+   - Configure features (database, background jobs, auth)
+   - Set up deployment targets
+3. **Or customize manually** - see [docs/CUSTOMIZING.md](./docs/CUSTOMIZING.md)
+
+The `/init` command will guide you through transforming this generic template into your specific project structure.
+
 ## Quick Start
 
 ### Prerequisites
