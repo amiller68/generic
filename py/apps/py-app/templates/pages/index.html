@@ -9,7 +9,7 @@
                     <span class="gradient-text">generic</span>
                 </h1>
                 <p class="text-xl text-muted-foreground mb-8">
-                    A basic fullstack Python template for shipping user-facing websites. Includes UI, OAuth, and Postgres - everything up to your first CRUD entity.
+                    A fullstack Python template with AI chat, background jobs, and real-time streaming. Built with FastAPI, htmx, and pydantic-ai.
                 </p>
                 <div class="flex gap-4">
                     <a href="/app/dashboard" class="bg-foreground text-background hover:bg-foreground/90 px-6 py-3 rounded-full flex items-center gap-2 font-medium transition-all duration-200 shadow-lg hover:shadow-xl border border-foreground/20">
@@ -82,33 +82,33 @@
     </div>
 </section>
 
-<!-- Roadmap Section -->
+<!-- Features Section -->
 <section class="py-20">
     <div class="uk-container">
-        <h2 class="text-3xl font-bold text-center mb-4">Coming soon</h2>
-        <p class="text-xl text-center text-muted-foreground mb-12">Near-term additions to make this even more useful</p>
+        <h2 class="text-3xl font-bold text-center mb-4">What's built</h2>
+        <p class="text-xl text-center text-muted-foreground mb-12">Production patterns included out of the box</p>
 
         <div class="max-w-2xl mx-auto">
             <div class="space-y-6">
                 <div class="flex items-start gap-4 p-4 bg-muted rounded-lg">
                     <uk-icon icon="check" class="text-primary mt-1"></uk-icon>
                     <div>
-                        <h3 class="font-semibold mb-2">Server-side rendering for SEO</h3>
-                        <p class="text-muted-foreground">Intermittent SSR for better search engine visibility and initial page loads.</p>
+                        <h3 class="font-semibold mb-2">AI Chat with Streaming</h3>
+                        <p class="text-muted-foreground">Admin-only AI assistant with SSE streaming, tool calling, and Redis-based cancellation.</p>
                     </div>
                 </div>
                 <div class="flex items-start gap-4 p-4 bg-muted rounded-lg">
-                    <uk-icon icon="clock" class="text-primary mt-1"></uk-icon>
+                    <uk-icon icon="check" class="text-primary mt-1"></uk-icon>
                     <div>
-                        <h3 class="font-semibold mb-2">Background jobs with ARQ + Redis</h3>
-                        <p class="text-muted-foreground">Async task queue for handling long-running processes and scheduled jobs.</p>
+                        <h3 class="font-semibold mb-2">Background Jobs with TaskIQ</h3>
+                        <p class="text-muted-foreground">Async task queue with Redis broker, declarative cron jobs, and distributed locking.</p>
                     </div>
                 </div>
                 <div class="flex items-start gap-4 p-4 bg-muted rounded-lg">
-                    <uk-icon icon="bolt" class="text-primary mt-1"></uk-icon>
+                    <uk-icon icon="check" class="text-primary mt-1"></uk-icon>
                     <div>
-                        <h3 class="font-semibold mb-2">LLM workflow patterns + WebSockets</h3>
-                        <p class="text-muted-foreground">Basic patterns for AI integrations with real-time streaming responses.</p>
+                        <h3 class="font-semibold mb-2">Monorepo with Turbo</h3>
+                        <p class="text-muted-foreground">Shared py-core library with SQLAlchemy 2.0, PgEnum types, and uuid7 IDs.</p>
                     </div>
                 </div>
             </div>
