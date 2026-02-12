@@ -1,16 +1,17 @@
-import uuid
+from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel
-from sqlalchemy import Boolean, Column, String, func
+from sqlalchemy import Boolean, func
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import Mapped, mapped_column
 
 from py_core.observability.logger import Logger
 
 from ..client import Base, DatabaseException
-from ..utils import utcnow
+from ..utils import utcnow, uuid7_str, StringEnum
 
 
 class UserRole(str, Enum):
@@ -29,29 +30,31 @@ class UserModel(BaseModel):
 class User(Base):
     __tablename__ = "users"
 
-    # Unique identifier
-    id = Column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False
-    )
+    # Unique identifier (uuid7 for time-sortable IDs)
+    id: Mapped[str] = mapped_column(primary_key=True, default=uuid7_str)
 
     # email
-    email = Column(String, unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(unique=True)
 
     # role (optional - None means regular user)
-    role = Column(String, nullable=True)
+    role: Mapped[UserRole | None] = mapped_column(StringEnum(UserRole), nullable=True)
 
     # approved status (new users start as not approved)
-    approved = Column(Boolean, nullable=False, default=False)
+    approved: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # timestamps
-    created_at = Column(TIMESTAMP(timezone=True), default=utcnow)
-    updated_at = Column(TIMESTAMP(timezone=True), default=utcnow, onupdate=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=utcnow, onupdate=utcnow
+    )
 
     def model(self) -> UserModel:
         return UserModel(
             id=str(self.id),
             email=str(self.email),
-            role=UserRole(self.role) if self.role else None,
+            role=self.role,
             approved=bool(self.approved),
         )
 
@@ -140,7 +143,7 @@ class User(Base):
     ) -> None:
         """Update user role (promote/demote admin)."""
         try:
-            self.role = role.value if role else None
+            self.role = role
             await session.flush()
         except Exception as e:
             if logger:

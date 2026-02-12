@@ -22,19 +22,19 @@ docs/                     # Documentation
 
 ## Key Patterns
 
-### SQLAlchemy 2.0 with PgEnum
+### SQLAlchemy 2.0 with StringEnum
 
-All models use `Mapped`/`mapped_column` syntax with `PgEnum` for type-safe enums:
+All models use `Mapped`/`mapped_column` syntax with `StringEnum` for type-safe enums:
 
 ```python
 from sqlalchemy.orm import Mapped, mapped_column
-from py_core.database.utils import PgEnum
+from py_core.database.utils import StringEnum
 
 class MyModel(Base):
-    status: Mapped[MyStatus] = mapped_column(PgEnum(MyStatus), default=MyStatus.PENDING)
+    status: Mapped[MyStatus] = mapped_column(StringEnum(MyStatus), default=MyStatus.PENDING)
 ```
 
-**Important**: With PgEnum, use enums directly in queries - no `.value` needed:
+**Important**: With StringEnum, use enums directly in queries - no `.value` needed:
 ```python
 # Correct
 model.status = MyStatus.PENDING

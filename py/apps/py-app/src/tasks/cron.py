@@ -14,7 +14,7 @@ Usage:
 import inspect
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Callable, cast
+from typing import Any, Callable
 
 from redis.asyncio import Redis
 from sqlalchemy import select
@@ -64,7 +64,7 @@ class TaskLock:
 async def _record_run_start(db: AsyncSession, job_name: str) -> str:
     run = CronJobRun(
         job_name=job_name,
-        status=CronJobRunStatus.RUNNING.value,
+        status=CronJobRunStatus.RUNNING,
         started_at=utcnow(),
     )
     db.add(run)
@@ -83,10 +83,10 @@ async def _record_run_complete(
     stmt = select(CronJobRun).where(CronJobRun.id == run_id)
     run = (await db.execute(stmt)).scalar_one_or_none()
     if run:
-        run.status = status.value
+        run.status = status
         completed_at = utcnow()
         run.completed_at = completed_at
-        started_at = _ensure_tz_aware(cast(datetime | None, run.started_at))
+        started_at = _ensure_tz_aware(run.started_at)
         if started_at:
             run.duration_ms = int((completed_at - started_at).total_seconds() * 1000)
         run.result = result

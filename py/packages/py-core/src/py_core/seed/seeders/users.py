@@ -31,12 +31,9 @@ class UserSeeder(Seeder[UserSeedConfig]):
                     # Track if we made any updates
                     updated = False
 
-                    # Determine expected role value
-                    expected_role = user_config.role.value if user_config.role else None
-
-                    # Update role if needed
-                    if existing.role != expected_role:
-                        existing.role = expected_role
+                    # Update role if needed (compare enums directly)
+                    if existing.role != user_config.role:
+                        existing.role = user_config.role
                         updated = True
                         ctx.logger.info(
                             f"Updated user {user_config.email} role to {user_config.role}"
@@ -60,7 +57,7 @@ class UserSeeder(Seeder[UserSeedConfig]):
                     # Create new user
                     user = await User.create(user_config.email, ctx.db, ctx.logger)
                     if user_config.role:
-                        user.role = user_config.role.value
+                        user.role = user_config.role
                     user.approved = user_config.approved
                     await ctx.db.flush()
                     ctx.logger.info(

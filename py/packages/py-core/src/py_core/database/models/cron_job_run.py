@@ -1,14 +1,16 @@
-import uuid
-from enum import Enum as PyEnum
+from datetime import datetime
+from enum import Enum
+from typing import Any
 
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Integer, Text
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ..client import Base
-from ..utils import utcnow
+from ..utils import utcnow, uuid7_str, StringEnum
 
 
-class CronJobRunStatus(PyEnum):
+class CronJobRunStatus(str, Enum):
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -18,14 +20,20 @@ class CronJobRunStatus(PyEnum):
 class CronJobRun(Base):
     __tablename__ = "cron_job_runs"
 
-    id = Column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False
+    id: Mapped[str] = mapped_column(primary_key=True, default=uuid7_str)
+    job_name: Mapped[str] = mapped_column(index=True)
+    status: Mapped[CronJobRunStatus] = mapped_column(
+        StringEnum(CronJobRunStatus), default=CronJobRunStatus.RUNNING
     )
-    job_name = Column(String, nullable=False, index=True)
-    status = Column(String, nullable=False, default=CronJobRunStatus.RUNNING.value)
-    started_at = Column(TIMESTAMP(timezone=True), nullable=True)
-    completed_at = Column(TIMESTAMP(timezone=True), nullable=True)
-    duration_ms = Column(Integer, nullable=True)
-    result = Column(JSONB, nullable=True)
-    error = Column(Text, nullable=True)
-    created_at = Column(TIMESTAMP(timezone=True), default=utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=utcnow
+    )

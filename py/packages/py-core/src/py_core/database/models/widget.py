@@ -1,18 +1,19 @@
 """Widget model - example entity for CRUD operations."""
 
-import uuid
+from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel
-from sqlalchemy import Column, String, Text, Integer, Boolean, ForeignKey, func
+from sqlalchemy import Text, Integer, Boolean, ForeignKey, func
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import Mapped, mapped_column
 
 from py_core.observability.logger import Logger
 
 from ..client import Base, DatabaseException
-from ..utils import utcnow
+from ..utils import utcnow, uuid7_str, StringEnum
 
 
 class WidgetStatus(str, Enum):
@@ -40,26 +41,32 @@ class Widget(Base):
 
     __tablename__ = "widgets"
 
-    # Unique identifier
-    id = Column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False
-    )
+    # Unique identifier (uuid7 for time-sortable IDs)
+    id: Mapped[str] = mapped_column(primary_key=True, default=uuid7_str)
 
     # Basic fields
-    name = Column(String(255), nullable=False)
-    description = Column(Text, nullable=True)
-    status = Column(String, nullable=False, default=WidgetStatus.DRAFT.value)
-    priority = Column(Integer, nullable=False, default=0)
+    name: Mapped[str] = mapped_column()
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[WidgetStatus] = mapped_column(
+        StringEnum(WidgetStatus), default=WidgetStatus.DRAFT
+    )
+    priority: Mapped[int] = mapped_column(Integer, default=0)
 
     # Ownership (optional FK to users)
-    owner_id = Column(String, ForeignKey("users.id"), nullable=True)
+    owner_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True, index=True
+    )
 
     # Visibility
-    is_public = Column(Boolean, nullable=False, default=False)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Timestamps
-    created_at = Column(TIMESTAMP(timezone=True), default=utcnow)
-    updated_at = Column(TIMESTAMP(timezone=True), default=utcnow, onupdate=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=utcnow, onupdate=utcnow
+    )
 
     def model(self) -> WidgetModel:
         """Convert to Pydantic model."""
@@ -67,8 +74,8 @@ class Widget(Base):
             id=str(self.id),
             name=str(self.name),
             description=str(self.description) if self.description else None,
-            status=WidgetStatus(self.status),
-            priority=int(str(self.priority)) if self.priority else 0,
+            status=self.status,
+            priority=int(self.priority) if self.priority else 0,
             owner_id=str(self.owner_id) if self.owner_id else None,
             is_public=bool(self.is_public),
         )
@@ -91,7 +98,7 @@ class Widget(Base):
             widget = Widget(
                 name=name,
                 description=description,
-                status=status.value,
+                status=status,
                 priority=priority,
                 owner_id=owner_id,
                 is_public=is_public,
@@ -133,7 +140,7 @@ class Widget(Base):
         try:
             query = select(Widget)
             if status:
-                query = query.filter(Widget.status == status.value)
+                query = query.filter(Widget.status == status)
             if owner_id:
                 query = query.filter(Widget.owner_id == owner_id)
             if search:
@@ -182,7 +189,7 @@ class Widget(Base):
         try:
             query = select(func.count(Widget.id))
             if status:
-                query = query.filter(Widget.status == status.value)
+                query = query.filter(Widget.status == status)
             if owner_id:
                 query = query.filter(Widget.owner_id == owner_id)
             if search:
@@ -213,7 +220,7 @@ class Widget(Base):
             if description is not None:
                 self.description = description
             if status is not None:
-                self.status = status.value
+                self.status = status
             if priority is not None:
                 self.priority = priority
             if is_public is not None:
@@ -232,7 +239,7 @@ class Widget(Base):
     ) -> None:
         """Update widget status."""
         try:
-            self.status = status.value
+            self.status = status
             await session.flush()
         except Exception as e:
             if logger:
