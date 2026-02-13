@@ -120,8 +120,8 @@ For detailed patterns and conventions, see the documentation:
 ### Customization (`docs/customizing/`)
 - `docs/customizing/README.md` - Overview and philosophy
 - `docs/customizing/project-setup.md` - Renaming, domains, .env files
-- `docs/customizing/python-packages.md` - py-core library patterns
 - `docs/customizing/typescript-packages.md` - TypeScript package patterns
+- `docs/customizing/hybrid-stack.md` - Python API + TypeScript frontend
 - `docs/customizing/multi-tenancy.md` - SaaS tenant isolation
 
 ## Issue Tracking

@@ -335,4 +335,4 @@ The underscore prefix (`_status`, `_admin`) signals internal/infrastructure rout
 
 - [Turbo Monorepo](turbo-monorepo.md) - Build orchestration details
 - [TypeScript Packages](typescript-packages.md) - Shared type patterns
-- [Python Packages](python-packages.md) - py-core library patterns
+- `py/docs/PYTHON_LIBRARY_PATTERNS.md` - Python patterns

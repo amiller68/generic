@@ -1,0 +1,98 @@
+#!/bin/bash
+# Find available port and derive database name from git branch
+# Used by dev.sh and worker.sh for concurrent dev server support
+
+# Configuration
+PORT_RANGE_START=8000
+PORT_RANGE_END=8009
+
+get_branch_name() {
+    git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main"
+}
+
+# Sanitize branch name for database name (replace non-alphanumeric with _)
+sanitize_for_db() {
+    echo "$1" | sed 's/[^a-zA-Z0-9]/_/g' | sed 's/__*/_/g' | sed 's/^_//;s/_$//'
+}
+
+# Check if a port is in use
+is_port_in_use() {
+    local port="$1"
+    lsof -i :"$port" -sTCP:LISTEN >/dev/null 2>&1
+}
+
+# Find first available port in range
+find_available_port() {
+    for port in $(seq $PORT_RANGE_START $PORT_RANGE_END); do
+        if ! is_port_in_use "$port"; then
+            echo "$port"
+            return 0
+        fi
+    done
+    return 1  # No port available
+}
+
+# Main function to set up worktree environment
+get_worktree_config() {
+    local branch_name
+    branch_name=$(get_branch_name)
+    local db_suffix
+    db_suffix=$(sanitize_for_db "$branch_name")
+    local port
+    port=$(find_available_port)
+
+    if [ -z "$port" ]; then
+        echo ""
+        echo "ERROR: No available ports in range $PORT_RANGE_START-$PORT_RANGE_END!"
+        echo ""
+        echo "All 10 dev server slots are in use. Stop one of the running servers:"
+        echo "  lsof -i :8000-8009 | grep LISTEN"
+        echo ""
+        return 1
+    fi
+
+    export WORKTREE_BRANCH="$branch_name"
+    export WORKTREE_BACKEND_PORT="$port"
+    export WORKTREE_DB_NAME="${PROJECT_NAME:-generic}_${db_suffix}"
+    export WORKTREE_REDIS_DB=$((port - PORT_RANGE_START))
+    export WORKTREE_REDIS_URL="redis://localhost:6379/${WORKTREE_REDIS_DB}"
+    return 0
+}
+
+# Write dev server info to gitignored file for easy reference
+write_dev_info() {
+    local info_file="${PROJECT_ROOT:-.}/.dev-server"
+    cat > "$info_file" << EOF
+# Auto-generated - do not commit
+BRANCH=$WORKTREE_BRANCH
+PORT=$WORKTREE_BACKEND_PORT
+DATABASE=$WORKTREE_DB_NAME
+REDIS_DB=$WORKTREE_REDIS_DB
+URL=http://localhost:$WORKTREE_BACKEND_PORT
+EOF
+}
+
+# Get just the database name for current branch (no port needed)
+get_worktree_db_name() {
+    local branch_name
+    branch_name=$(get_branch_name)
+    local db_suffix
+    db_suffix=$(sanitize_for_db "$branch_name")
+    echo "${PROJECT_NAME:-generic}_${db_suffix}"
+}
+
+# Display current config (for debugging)
+show_worktree_config() {
+    if get_worktree_config; then
+        echo "Branch:   $WORKTREE_BRANCH"
+        echo "Port:     $WORKTREE_BACKEND_PORT"
+        echo "Database: $WORKTREE_DB_NAME"
+        echo "Redis DB: $WORKTREE_REDIS_DB"
+        echo "URL:      http://localhost:$WORKTREE_BACKEND_PORT"
+    fi
+}
+
+# If run directly (not sourced), show config
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    show_worktree_config
+fi

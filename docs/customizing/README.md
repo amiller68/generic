@@ -37,9 +37,10 @@ This template is **fullstack by design**. Before removing features, consider:
 | [Project Setup](project-setup.md) | Renaming, configuring .env.project, domains |
 | [Turbo Monorepo](turbo-monorepo.md) | How turbo orchestrates TypeScript builds |
 | [TypeScript Packages](typescript-packages.md) | ts-core pattern with subpath exports |
-| [Python Packages](python-packages.md) | py-core library patterns |
 | [Hybrid Stack](hybrid-stack.md) | Python API + TypeScript frontend |
 | [Multi-Tenancy](multi-tenancy.md) | Tenant isolation for SaaS apps |
+
+For Python patterns, see `py/docs/`.
 
 ## Architecture Overview
 
