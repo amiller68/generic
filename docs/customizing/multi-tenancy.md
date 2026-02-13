@@ -198,24 +198,21 @@ Change routes from user-scoped to tenant-scoped:
 
 ## Event Publishing
 
-Events are still published to user channels (for real-time UI updates), but actions are authorized via tenant:
+Events are published to tenant channels so all members see updates:
 
 ```python
-# User receives events on their personal channel
+# All tenant members receive the event
 await ctx.events.publish(
-    ctx.user_id,
-    ThreadStreamEvent(completion_id=ctx.completion_id, chunk=chunk),
+    ctx.tenant_id,
+    ThreadStreamEvent(thread_id=thread_id, chunk=chunk),
 )
 ```
 
-For multi-user collaboration, also publish to tenant channels:
+Users subscribe to their tenant's channel on connect:
 
 ```python
-# All tenant members receive updates
-await ctx.events.publish_to_tenant(
-    ctx.tenant_id,
-    ThreadUpdatedEvent(thread_id=thread_id),
-)
+# On WebSocket connect, subscribe to tenant channel
+await websocket.join(f"tenant:{ctx.tenant_id}")
 ```
 
 ## Summary
@@ -226,6 +223,6 @@ await ctx.events.publish_to_tenant(
 | Authorization check | User owns resource | User has tenant access |
 | Route structure | `/threads/{id}` | `/tenants/{tenant_id}/threads/{id}` |
 | Context fields | `user_id` | `user_id` + `tenant_id` |
-| Event channels | Per-user | Per-user + per-tenant |
+| Event channels | Per-user | Per-tenant |
 
-**Key insight:** Tenant ID flows through every operation - from API auth to database queries to background tasks. This ensures complete isolation.
+**Key insight:** Tenant ID flows through every operation - from API auth to database queries to background tasks to event channels.
