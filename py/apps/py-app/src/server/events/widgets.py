@@ -24,7 +24,6 @@ import json
 from typing import AsyncGenerator
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.templating import Jinja2Templates
 from redis.asyncio import Redis
 from sse_starlette.sse import EventSourceResponse
 
@@ -40,9 +39,9 @@ from src.server.deps import (
     require_admin_user,
     require_logged_in_user,
 )
+from src.server.templates import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 async def publish_widget_event(

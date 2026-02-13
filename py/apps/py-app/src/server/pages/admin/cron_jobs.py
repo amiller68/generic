@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,9 +9,9 @@ from py_core.database.models import User
 from py_core.database.models.cron_job_run import CronJobRun, CronJobRunStatus
 
 from src.server.deps import async_db, require_admin_user
+from src.server.templates import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 ITEMS_PER_PAGE = 20
 

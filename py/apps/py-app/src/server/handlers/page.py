@@ -1,9 +1,8 @@
 from fastapi import Request
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from typing import Dict, Any
 
-templates = Jinja2Templates(directory="templates")
+from src.server.templates import templates
 
 
 class PageResponse:

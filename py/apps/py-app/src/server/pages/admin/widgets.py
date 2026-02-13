@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Form
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from py_core.database.models import User, Widget, WidgetStatus
@@ -17,9 +16,9 @@ from py_core.events import (
     WidgetUpdatedEvent,
 )
 from redis.asyncio import Redis
+from src.server.templates import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 WIDGETS_PER_PAGE = 20
 

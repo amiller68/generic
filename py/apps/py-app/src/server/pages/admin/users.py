@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from py_core.database.models import User
@@ -11,9 +10,9 @@ from py_core.observability import Logger
 
 from src.server.deps import async_db, logger, require_admin_user
 from src.tasks.jobs.send_welcome_notification import send_welcome_notification
+from src.server.templates import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 USERS_PER_PAGE = 20
 
