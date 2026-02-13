@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" data-app="Xyris">
+    <defs>
+        <filter id="filter-wPbxPoZxHegJ96vzbiYk3x" x="-0.076" y="-0.067" width="1.151" height="1.151" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix">
+            </feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha">
+            </feColorMatrix>
+            <feOffset dy="4">
+            </feOffset>
+            <feGaussianBlur stdDeviation="2">
+            </feGaussianBlur>
+            <feComposite in2="hardAlpha" operator="out">
+            </feComposite>
+            <feColorMatrix type="matrix" values="0 0 0 0 0.968627 0 0 0 0 0.921569 0 0 0 0 0 0 0 0 1 0">
+            </feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_4_41">
+            </feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_4_41" result="shape">
+            </feBlend>
+        </filter>
+        <filter id="filter-3GvF7HqTXs9xi4y9DiQgbz" x="-0.076" y="-0.067" width="1.151" height="1.151" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix">
+            </feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha">
+            </feColorMatrix>
+            <feOffset dy="4">
+            </feOffset>
+            <feGaussianBlur stdDeviation="2">
+            </feGaussianBlur>
+            <feComposite in2="hardAlpha" operator="out">
+            </feComposite>
+            <feColorMatrix type="matrix" values="0 0 0 0 0.00137388 0 0 0 0 0.950069 0 0 0 0 1 0 0 0 1 0">
+            </feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_4_41">
+            </feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_4_41" result="shape">
+            </feBlend>
+        </filter>
+        <linearGradient id="linearGradient-sGmXHx4X4bbozCakaa4u8L">
+            <stop offset="31.10333854706035%" stop-color="rgb(255, 252, 0)">
+            </stop>
+            <stop offset="69.01779277407091%" stop-color="rgb(234, 0, 255)">
+            </stop>
+            <stop offset="74.6735493359866%" stop-color="rgb(255, 0, 252)">
+            </stop>
+        </linearGradient>
+    </defs>
+    <g filter="url(#filter-wPbxPoZxHegJ96vzbiYk3x)" transform-origin="center" transform="matrix(1,0,0,1,-915.0009155273438,-499.99993896484375)" style="transform-box: fill-box;">
+        <path d="M 1008.5 794.727 C 1008.5 833.441 1022.31 870.881 1047.47 900.31 C 1072.63 929.737 1107.45 949.22 1145.7 955.243 C 1183.94 961.275 1223.08 953.449 1256.05 933.186 C 1289.04 912.927 1313.71 881.553 1325.62 844.718 C 1337.53 807.882 1335.9 768.005 1321.02 732.268 C 1306.14 696.529 1278.98 667.276 1244.46 649.777 C 1209.93 632.278 1170.28 627.681 1132.66 636.814 C 1095.04 645.948 1061.91 668.212 1039.26 699.596" stroke="black" stroke-width="45" stroke-linecap="round" transform="" fill="none">
+        </path>
+    </g>
+    <g filter="url(#filter-3GvF7HqTXs9xi4y9DiQgbz)" transform-origin="center" transform="translate(-465, -500) rotate(240)" style="transform-box: fill-box;">
+        <path d="M 852.465 887.68 C 829.711 918.999 796.523 941.166 758.877 950.19 C 721.231 959.212 681.602 954.5 647.121 936.9 C 612.64 919.3 585.577 889.968 570.802 854.186 C 556.025 818.405 554.511 778.525 566.527 741.725 C 578.543 704.925 603.304 673.624 636.348 653.458 C 669.393 633.29 708.551 625.583 746.771 631.723 C 784.994 637.863 819.769 657.446 844.835 686.947 C 869.901 716.449 883.612 753.929 883.499 792.641" stroke="black" stroke-width="45" stroke-linecap="round" transform="" fill="none">
+        </path>
+    </g>
+    <g filter="url(#filter-gZBkanQtt2YPN6akorJ8jv)" transform-origin="center" transform="translate(-915.001, -500) rotate(180)" style="transform-box: fill-box;">
+        <path d="M 1008.5 794.726 C 1008.5 833.439 1022.32 870.879 1047.47 900.308 C 1072.63 929.734 1107.46 949.216 1145.7 955.245 C 1183.94 961.272 1223.08 953.45 1256.05 933.188 C 1289.04 912.925 1313.71 881.551 1325.62 844.716 C 1337.53 807.881 1335.9 768.004 1321.02 732.267 C 1306.14 696.528 1278.99 667.276 1244.46 649.777 C 1209.93 632.278 1170.28 627.681 1132.66 636.814 C 1095.04 645.948 1061.91 668.212 1039.26 699.596" stroke="rgb(0, 0, 0)" stroke-width="95" stroke-linecap="round" transform="" fill="none" stroke-dasharray="20, 90" pathLength="100" stroke-dashoffset="-17.5">
+        </path>
+        <path d="M 1008.5 794.726 C 1008.5 833.439 1022.32 870.879 1047.47 900.308 C 1072.63 929.734 1107.46 949.216 1145.7 955.245 C 1183.94 961.272 1223.08 953.45 1256.05 933.188 C 1289.04 912.925 1313.71 881.551 1325.62 844.716 C 1337.53 807.881 1335.9 768.004 1321.02 732.267 C 1306.14 696.528 1278.99 667.276 1244.46 649.777 C 1209.93 632.278 1170.28 627.681 1132.66 636.814 C 1095.04 645.948 1061.91 668.212 1039.26 699.596" stroke="url(#linearGradient-sGmXHx4X4bbozCakaa4u8L)" stroke-width="75" stroke-linecap="round" transform="" fill="none" stroke-dasharray="20, 90" pathLength="100" stroke-dashoffset="-17.5">
+        </path>
+    </g>
+</svg>

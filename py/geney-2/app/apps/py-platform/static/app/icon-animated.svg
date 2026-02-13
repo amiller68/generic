@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1380" height="1000" fill="none" id="id_dFusCdBngjepfM9ZwFJWxz" viewBox="0 0 1380 1000" data-app="Xyris">
+    <defs>
+        <filter id="filter-bxd5Chthe4BEx2z68DQCky" x="-0.076" y="-0.067" width="1.151" height="1.151" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix">
+            </feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha">
+            </feColorMatrix>
+            <feOffset dy="4">
+            </feOffset>
+            <feGaussianBlur stdDeviation="2">
+            </feGaussianBlur>
+            <feComposite in2="hardAlpha" operator="out">
+            </feComposite>
+            <feColorMatrix type="matrix" values="0 0 0 0 0.00137388 0 0 0 0 0.950069 0 0 0 0 1 0 0 0 1 0">
+            </feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_4_41">
+            </feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_4_41" result="shape">
+            </feBlend>
+        </filter>
+        <filter id="filter-s2DifpBKXQWK9r2vq5EYq6" x="-0.076" y="-0.067" width="1.151" height="1.151" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix">
+            </feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha">
+            </feColorMatrix>
+            <feOffset dy="4">
+            </feOffset>
+            <feGaussianBlur stdDeviation="2">
+            </feGaussianBlur>
+            <feComposite in2="hardAlpha" operator="out">
+            </feComposite>
+            <feColorMatrix type="matrix" values="0 0 0 0 0.968627 0 0 0 0 0.921569 0 0 0 0 0 0 0 0 1 0">
+            </feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_4_41">
+            </feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_4_41" result="shape">
+            </feBlend>
+        </filter>
+        <linearGradient id="linearGradient-fe1vizE49BdqrTPaDozEvP">
+            <stop offset="0%" stop-color="rgb(0, 255, 224)">
+            </stop>
+            <stop offset="50%" stop-color="rgb(255, 0, 232)">
+            </stop>
+            <stop offset="100%" stop-color="rgb(239, 255, 0)">
+            </stop>
+        </linearGradient>
+        <filter id="filter-nMpAk25wsH7WQjL9FikR96">
+            <feDropShadow dx="3" dy="3" stdDeviation="3" flood-color="rgb(252, 0, 255)">
+            </feDropShadow>
+        </filter>
+    </defs>
+    <g transform-origin="center" transform="" style="transform-box: fill-box;">
+        <g filter="url(#filter-bxd5Chthe4BEx2z68DQCky)" transform-origin="center" transform="matrix(1,0,0,1,-464.99981689453125,-500)" style="transform-box: fill-box;">
+            <path d="M 647.028658203125 632.252 C 615.522658203125 675.616 569.570658203125 706.309 517.445658203125 718.803 C 465.320658203125 731.296 410.447658203125 724.771 362.705658203125 700.402 C 314.964658203125 676.032 277.491658203125 635.42 257.033658203125 585.876 C 236.574658203125 536.332 234.475658203125 481.112 251.114658203125 430.159 C 267.752658203125 379.205 302.034658203125 335.865 347.788658203125 307.942 C 393.542658203125 280.019 447.761658203125 269.347 500.684658203125 277.848 C 553.607658203125 286.35 601.757658203125 313.465 636.464658203125 354.313 C 671.171658203125 395.161 690.155658203125 447.057 689.998658203125 500.658" stroke="black" stroke-width="50" stroke-linecap="round" transform="">
+            </path>
+            <animateTransform attributeName="transform" type="rotate" begin="0.7255572486581158" dur="0.499005756672385" keyTimes="0; 1" values="0; 0360" fill="freeze" additive="sum" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+            </animateTransform>
+            <animateMotion begin="-0.00001" dur="0.4997010570726532" keyTimes="0; 1" keyPoints="0; 1.0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                <mpath href="#motion-path-pX42iQN2vzYq4vT6tDB4Gy">
+                </mpath>
+                <animateMotion begin="-0.00001" dur="0.4997010570726532" keyTimes="0; 1" keyPoints="0; 1.0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                    <mpath href="#motion-path-pX42iQN2vzYq4vT6tDB4Gy">
+                    </mpath>
+                </animateMotion>
+            </animateMotion>
+            <animateMotion begin="1.4362066884839417" dur="0.49448657612274516" keyTimes="0; 1" keyPoints="01; 0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                <mpath href="#motion-path-pX42iQN2vzYq4vT6tDB4Gy">
+                </mpath>
+            </animateMotion>
+        </g>
+        <g filter="url(#filter-s2DifpBKXQWK9r2vq5EYq6)" transform-origin="center" transform="matrix(1,0,0,1,-915.0009155273438,-499.99993896484375)" style="transform-box: fill-box;">
+            <path d="M690 500C690 553.601 709.136 605.442 743.962 646.188C778.788 686.934 827.017 713.909 879.965 722.255C932.912 730.601 987.1 719.771 1032.77 691.715C1078.44 663.658 1112.6 620.218 1129.09 569.216C1145.58 518.214 1143.32 463 1122.72 413.517C1102.11 364.033 1064.52 323.53 1016.71 299.3C968.896 275.071 914.004 268.706 861.915 281.352C809.827 293.998 763.965 324.825 732.585 368.281" stroke="black" stroke-width="50" stroke-linecap="round" transform="">
+            </path>
+            <animateTransform attributeName="transform" type="rotate" begin="0.22587619158546252" dur="0.4997010570726532" keyTimes="0; 1" values="0; -90" fill="freeze" additive="sum" calcMode="spline" keySplines="0.25 0.46 0.45 0.94">
+            </animateTransform>
+            <animateMotion begin="-0.00001" dur="0.4997010570726532" keyTimes="0; 1" keyPoints="0; 1.0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                <mpath href="#motion-path-1MXTS8CfNNYFD9MSZtFUNV">
+                </mpath>
+            </animateMotion>
+            <animateTransform attributeName="transform" type="rotate" begin="-0.00001" dur="0.4997010570726532" keyTimes="0; 1" values="90;90" fill="freeze" additive="sum" calcMode="spline" keySplines="0.42 0 1 1">
+            </animateTransform>
+            <animateTransform attributeName="transform" type="rotate" begin="1.2245330053305006" dur="0.7061602592761863" keyTimes="0; 1" values="0; -270" fill="freeze" additive="sum" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+            </animateTransform>
+            <animateMotion begin="-0.00001" dur="0.4997010570726532" keyTimes="0; 1" keyPoints="0; 1.0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                <mpath href="#motion-path-1MXTS8CfNNYFD9MSZtFUNV">
+                </mpath>
+            </animateMotion>
+            <animateMotion begin="1.4362066884839417" dur="0.49448657612274516" keyTimes="0; 1" keyPoints="01; 0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                <mpath href="#motion-path-1MXTS8CfNNYFD9MSZtFUNV">
+                </mpath>
+            </animateMotion>
+        </g>
+        <g id="g-iVGv2fqBftYj8KeZyKdeBx" transform="">
+            <path d="M 690.387 500.3429655761719 C 689.352 369.6339655761719 810.297 295.1859655761719 862.421 282.5919655761719 C 914.547 269.99796557617185 978.987 273.28596557617186 1029.76 302.4219655761719 C 1048.4 313.0979655761719 1065.81 325.8069655761719 1081.24 344.3429655761719 C 1096.68 362.87996557617186 1112.2 381.43996557617186 1121.08 403.82896557617187 C 1145.32 464.8379655761719 1146.77 536.2759655761719 1122.52 597.3009655761718 C 1113.59 619.6439655761719 1098.55 637.3239655761719 1083.13 655.8609655761719 C 1067.71 674.3959655761719 1044.15 690.5549655761719 1023.96 701.1289655761718 C 971.737 728.4739655761718 847.476 729.1699655761719 798.311 695.5589655761719 C 787.126 687.9129655761719 686.093 644.6639655761719 690.387 500.3429655761719 L 690.387 500.3429655761719 C 690.24 369.15596557617187 553.899 287.5689655761719 500.939 279.1019655761719 C 447.979 270.6359655761719 403.661 273.76396557617187 352.886 302.8999655761719 C 334.258 313.5759655761719 310.593 331.06696557617187 295.158 349.6039655761719 C 279.736 368.1399655761719 267.09 384.7869655761719 259.649 402.3929655761719 C 234.089 462.8669655761719 233.485 536.2759655761719 257.726 597.3009655761718 C 266.649 619.6439655761719 285.541 640.6709655761719 300.964 659.2079655761719 C 316.387 677.7439655761718 341.505 690.4529655761719 360.133 701.1289655761718 C 410.894 730.2639655761719 515.403 734.4569655761719 565.417 704.0679655761719 C 610.833 676.4739655761718 685.503 643.7419655761719 690.387 500.3429655761719 L 690.387 500.3429655761719 Z" fill="none" stroke-linejoin="round" stroke="rgb(0, 0, 0)" stroke-linecap="round" stroke-width="90" stroke-dasharray="0.5, 7.5" pathLength="8" transform-origin="center" filter="url(#filter-nMpAk25wsH7WQjL9FikR96)" transform="matrix(1,0,0,1,-689.6138916015625,-499.6555480957031)" style="transform-box: fill-box;">
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="7.25; 8.25" begin="0.22587619158546252" dur="0.4997110570726533" fill="freeze" calcMode="spline" keySplines="0.25 0.46 0.45 0.94">
+                    <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001; 13.5" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955" repeatCount="indefinite">
+                    </animate>
+                    <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001;8" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                        <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001; 13.5" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955" repeatCount="indefinite">
+                        </animate>
+                    </animate>
+                    <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="8.2;12.2" begin="1.0000000000000004" dur="0.9885814721679683" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                    </animate>
+                    <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="7.25;8.25" begin="-0.00002" dur="0.49971105707265323" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                        <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001; 13.5" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955" repeatCount="indefinite">
+                        </animate>
+                        <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001;8" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                            <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001; 13.5" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955" repeatCount="indefinite">
+                            </animate>
+                        </animate>
+                        <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="8.2;12.2" begin="1.0000000000000004" dur="0.9885814721679683" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                        </animate>
+                    </animate>
+                </animate>
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="8.25; 12.25" begin="0.7255572486581158" dur="0.49899575667238494" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                </animate>
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="12.25; 15.25" begin="1.2245330053305006" dur="0.7061602592761863" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                </animate>
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="7.25;7.25" begin="-0.00001" dur="0.4997010570726532" fill="freeze" calcMode="spline" keySplines="0 0 1 1">
+                </animate>
+                <animateMotion begin="-0.00001" dur="0.4997010570726532" keyTimes="0; 1" keyPoints="0; 1.0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                    <mpath href="#motion-path-45r5GRH5fdFQttugo7EFgV">
+                    </mpath>
+                </animateMotion>
+                <animateMotion begin="1.4362066884839417" dur="0.49448657612274516" keyTimes="0; 1" keyPoints="1; 0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                    <mpath href="#motion-path-45r5GRH5fdFQttugo7EFgV">
+                    </mpath>
+                </animateMotion>
+            </path>
+            <path d="M 690.3868923339844 500.343 C 689.3518923339843 369.634 810.2968923339844 295.186 862.4208923339844 282.592 C 914.5468923339844 269.998 978.9868923339844 273.286 1029.7608923339844 302.422 C 1048.4008923339843 313.098 1065.8108923339844 325.807 1081.2408923339844 344.343 C 1096.6808923339843 362.88 1112.2008923339845 381.44 1121.0808923339844 403.829 C 1145.3208923339844 464.838 1146.7708923339844 536.276 1122.5208923339844 597.301 C 1113.5908923339844 619.644 1098.5508923339844 637.324 1083.1308923339843 655.861 C 1067.7108923339845 674.396 1044.1508923339843 690.555 1023.9608923339844 701.129 C 971.7368923339844 728.474 847.4758923339843 729.17 798.3108923339844 695.559 C 787.1258923339843 687.913 686.0928923339844 644.664 690.3868923339844 500.343 L 690.3868923339844 500.343 C 690.2398923339844 369.156 553.8988923339843 287.569 500.93889233398437 279.102 C 447.9788923339844 270.636 403.66089233398435 273.764 352.8858923339844 302.9 C 334.2578923339844 313.576 310.59289233398437 331.067 295.15789233398436 349.604 C 279.7358923339844 368.14 267.0898923339844 384.787 259.64889233398435 402.393 C 234.08889233398438 462.867 233.48489233398436 536.276 257.72589233398435 597.301 C 266.64889233398435 619.644 285.5408923339844 640.671 300.96389233398435 659.208 C 316.38689233398435 677.744 341.5048923339844 690.453 360.1328923339844 701.129 C 410.89389233398435 730.264 515.4028923339844 734.457 565.4168923339844 704.068 C 610.8328923339843 676.474 685.5028923339844 643.742 690.3868923339844 500.343 L 690.3868923339844 500.343 Z" fill="none" stroke-linejoin="round" stroke="url(#linearGradient-fe1vizE49BdqrTPaDozEvP)" stroke-linecap="round" stroke-width="75" stroke-dasharray="0.5, 7.5" pathLength="8" transform-origin="center" transform="matrix(1,0,0,1,-689.6138916015625,-499.6555480957031)" style="transform-box: fill-box;">
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="7.25; 8.25" begin="0.22587619158546252" dur="0.4997110570726533" fill="freeze" calcMode="spline" keySplines="0.25 0.46 0.45 0.94">
+                    <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001; 13.5" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955" repeatCount="indefinite">
+                    </animate>
+                    <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001;8" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                        <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="4.50001; 13.5" begin="-0.00002" dur="1.0000400000000005" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955" repeatCount="indefinite">
+                        </animate>
+                    </animate>
+                    <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="8.2;12.2" begin="1.0000000000000004" dur="0.9885814721679683" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                    </animate>
+                </animate>
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="8.25; 12.25" begin="0.7255572486581158" dur="0.49899575667238494" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                </animate>
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="12.25; 15.25" begin="1.2245330053305006" dur="0.7061602592761863" fill="freeze" calcMode="spline" keySplines="0.455 0.03 0.515 0.955">
+                </animate>
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="7.25;7.25" begin="-0.00001" dur="0.4997010570726532" fill="freeze" calcMode="spline" keySplines="0 0 1 1">
+                </animate>
+                <animateMotion begin="-0.00001" dur="0.4997010570726532" keyTimes="0; 1" keyPoints="0; 1.0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                    <mpath href="#motion-path-vcSSw5kGNNbD4QMVBqJjuK">
+                    </mpath>
+                </animateMotion>
+                <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="7.25;7.25" begin="-0.00001" dur="0.4997010570726532" fill="freeze" calcMode="spline" keySplines="0 0 1 1">
+                </animate>
+                <animateMotion begin="-0.00001" dur="0.4997010570726532" keyTimes="0; 1" keyPoints="0; 1.0" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                    <mpath href="#motion-path-vcSSw5kGNNbD4QMVBqJjuK">
+                    </mpath>
+                </animateMotion>
+                <animateMotion begin="1.4362066884839417" dur="0.49448657612274516" keyTimes="0; 1" keyPoints="01; 00" fill="freeze" keySplines="0.455 0.03 0.515 0.955" calcMode="spline">
+                    <mpath href="#motion-path-vcSSw5kGNNbD4QMVBqJjuK">
+                    </mpath>
+                </animateMotion>
+            </path>
+        </g>
+        <path d="M 465 500 C 689.6139221191406 499.6555480957031 689.6139221191406 499.6555480957031 689.6139221191406 499.6555480957031" stroke-width="1" stroke="none" fill="none" id="motion-path-45r5GRH5fdFQttugo7EFgV" transform="">
+        </path>
+        <path d="M 465 499.6555480957031 C 689.6139526367188 500.0003967285156 689.6139526367188 500.0003967285156 689.6139526367188 500.0003967285156" stroke-width="1" stroke="none" fill="none" id="motion-path-vcSSw5kGNNbD4QMVBqJjuK" transform="">
+        </path>
+        <path d="M 689.6139526367188 499.6555480957031 C 465 500.343994140625 465 500.343994140625 465 500.343994140625" stroke-width="1" stroke="none" fill="none" id="motion-path-pX42iQN2vzYq4vT6tDB4Gy" transform="">
+        </path>
+        <path d="M 689.6139291229857 499.6555380708983 C 915 500.343994140625 915 500.343994140625 915 500.343994140625" stroke-width="1" stroke="none" fill="none" id="motion-path-1MXTS8CfNNYFD9MSZtFUNV" transform="">
+        </path>
+    </g>
+    <animate attributeName="stroke-dashoffset" keyTimes="0; 1" values="7.25;7.25" begin="-0.00001" dur="0.4997010570726532" fill="freeze" calcMode="spline" keySplines="0 0 1 1">
+    </animate>
+</svg>

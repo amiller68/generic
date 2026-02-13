@@ -1,0 +1,169 @@
+{# Theme Switcher Component #}
+{% macro theme_switcher() %}
+<div class="flex items-center">
+  <!-- Theme Toggle Button -->
+  <button id="theme-toggle" class="uk-btn uk-btn-ghost p-2 rounded-lg" aria-label="Toggle theme">
+    <div class="relative w-20 h-10">
+      <!-- Background track -->
+      <div class="absolute inset-0 bg-muted rounded-full transition-colors duration-300"></div>
+
+      <!-- Sliding indicator -->
+      <div class="absolute top-1 left-1 w-8 h-8 bg-background rounded-full shadow-lg transition-transform duration-300 js-theme-indicator">
+        <!-- Icons container -->
+        <div class="relative w-full h-full flex items-center justify-center">
+          <!-- Sun icon for light mode -->
+          <div class="absolute inset-0 flex items-center justify-center js-theme-icon-light transition-opacity duration-300">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="4" class="text-yellow-500 fill-yellow-400"></circle>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" class="text-yellow-500"></path>
+            </svg>
+          </div>
+
+          <!-- Moon icon for dark mode -->
+          <div class="absolute inset-0 flex items-center justify-center js-theme-icon-dark opacity-0 transition-opacity duration-300">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" class="text-blue-400 fill-blue-500/20"></path>
+              <circle cx="15" cy="9" r="1" class="text-yellow-200 fill-yellow-200"></circle>
+              <circle cx="18" cy="13" r="0.5" class="text-yellow-100 fill-yellow-100"></circle>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </button>
+</div>
+
+<style>
+  /* Dark mode styles */
+  .dark .js-theme-indicator {
+    transform: translateX(2.5rem);
+  }
+
+  .dark .js-theme-icon-light {
+    opacity: 0;
+  }
+
+  .dark .js-theme-icon-dark {
+    opacity: 1;
+  }
+
+  /* Add some glow effects */
+  .js-theme-icon-light svg {
+    filter: drop-shadow(0 0 3px rgba(250, 204, 21, 0.4));
+  }
+
+  .js-theme-icon-dark svg {
+    filter: drop-shadow(0 0 3px rgba(96, 165, 250, 0.4));
+  }
+
+  /* Smooth transitions */
+  #theme-toggle:hover .js-theme-indicator {
+    transform: scale(1.1) translateX(var(--translate-x, 0));
+  }
+
+  .dark #theme-toggle:hover .js-theme-indicator {
+    transform: scale(1.1) translateX(2.5rem);
+  }
+</style>
+
+<script>
+  // Theme switcher functionality
+  (function() {
+    function initThemeSwitcher() {
+      const themeToggle = document.getElementById('theme-toggle');
+      const htmlElement = document.documentElement;
+
+      if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+          const isDark = htmlElement.classList.contains('dark');
+          const frankenData = JSON.parse(localStorage.getItem('__FRANKEN__') || '{}');
+
+          if (isDark) {
+            htmlElement.classList.remove('dark');
+            frankenData.mode = 'light';
+          } else {
+            htmlElement.classList.add('dark');
+            frankenData.mode = 'dark';
+          }
+
+          localStorage.setItem('__FRANKEN__', JSON.stringify(frankenData));
+        });
+      }
+    }
+
+    initThemeSwitcher();
+  })();
+</script>
+{% endmacro %}
+
+{# Alternative compact switcher #}
+{% macro theme_switcher_compact() %}
+<button id="theme-toggle-compact" class="uk-button uk-button-ghost uk-button-icon uk-button-small" aria-label="Toggle theme">
+  <span class="relative block w-5 h-5">
+    <!-- Sun icon (visible in light mode) -->
+    <uk-icon icon="sun" class="js-sun-icon absolute inset-0 transition-all duration-300"></uk-icon>
+
+    <!-- Moon icon (visible in dark mode) -->
+    <uk-icon icon="moon" class="js-moon-icon absolute inset-0 transition-all duration-300 opacity-0"></uk-icon>
+  </span>
+</button>
+
+<style>
+  /* Light mode (default) */
+  .js-sun-icon {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  .js-moon-icon {
+    transform: scale(0) rotate(-90deg);
+    opacity: 0;
+  }
+
+  /* Dark mode */
+  .dark .js-sun-icon {
+    transform: scale(0) rotate(90deg);
+    opacity: 0;
+  }
+  .dark .js-moon-icon {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+</style>
+
+
+<script>
+  // Compact theme switcher functionality
+  (function() {
+    function initCompactThemeSwitcher() {
+      const themeToggleCompact = document.getElementById('theme-toggle-compact');
+      const htmlElement = document.documentElement;
+
+      if (themeToggleCompact) {
+        themeToggleCompact.addEventListener('click', function() {
+          const isDark = htmlElement.classList.contains('dark');
+          const frankenData = JSON.parse(localStorage.getItem('__FRANKEN__') || '{}');
+
+          if (isDark) {
+            htmlElement.classList.remove('dark');
+            frankenData.mode = 'light';
+          } else {
+            htmlElement.classList.add('dark');
+            frankenData.mode = 'dark';
+          }
+
+          localStorage.setItem('__FRANKEN__', JSON.stringify(frankenData));
+        });
+      }
+    }
+
+    // Register with AppInit if available, otherwise run immediately when DOM is ready
+    if (window.AppInit && window.AppInit.register) {
+      window.AppInit.register(initCompactThemeSwitcher);
+    } else if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCompactThemeSwitcher);
+    } else {
+      initCompactThemeSwitcher();
+    }
+  })();
+</script>
+{% endmacro %}

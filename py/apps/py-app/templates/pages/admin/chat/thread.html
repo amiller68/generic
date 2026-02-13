@@ -1,0 +1,13 @@
+{% if request.headers.get('HX-Request') %}
+{# Partial response for HTMX #}
+{% include "pages/admin/chat/_thread_content.html" %}
+{% else %}
+{# Full page response #}
+{% extends "layouts/admin.html" %}
+
+{% block title %}Chat - {{ thread.title or "Untitled" }}{% endblock %}
+
+{% block content %}
+{% include "pages/admin/chat/_thread_content.html" %}
+{% endblock %}
+{% endif %}

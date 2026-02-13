@@ -1,0 +1,20 @@
+{
+  "name": "@generic/py-app",
+  "private": true,
+  "scripts": {
+    "dev": "./bin/dev.sh",
+    "dev:worker": "./bin/worker.sh",
+    "dev:scheduler": "./bin/scheduler.sh",
+    "setup": "echo 'setup handled by py-core'",
+    "fmt": "make fmt",
+    "fmt:check": "make fmt-check",
+    "lint": "make lint",
+    "types": "make types",
+    "test": "make test",
+    "check": "make check",
+    "clean": "make clean"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

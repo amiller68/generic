@@ -1,0 +1,78 @@
+{% extends "layouts/admin.html" %}
+
+{% block title %}AI Chat{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold">AI Chat</h1>
+        <p class="text-muted-foreground">Admin AI assistant with background task capabilities</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- New Thread Form -->
+        <div class="lg:col-span-2">
+            <div class="uk-card uk-card-default uk-card-body">
+                <h3 class="text-lg font-semibold mb-4">New Conversation</h3>
+                <form action="/_admin/chat/new" method="post" class="space-y-4">
+                    <textarea name="message"
+                              rows="3"
+                              class="uk-textarea w-full"
+                              placeholder="Ask me anything... I can run analysis, check system stats, and more."
+                              required></textarea>
+                    <div class="flex justify-end">
+                        <button type="submit" class="uk-button uk-button-primary">
+                            <uk-icon icon="send" class="mr-1 w-4 h-4"></uk-icon>
+                            Start Chat
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Thread History -->
+        <div>
+            <div class="uk-card uk-card-default uk-card-body">
+                <h3 class="text-lg font-semibold mb-4">Recent Threads</h3>
+                {% if threads %}
+                    <ul class="space-y-2">
+                        {% for thread in threads %}
+                            <li>
+                                <a href="/_admin/chat/{{ thread.id }}"
+                                   class="block p-3 rounded-md hover:bg-accent transition-colors">
+                                    <p class="font-medium truncate">
+                                        {{ thread.title or "Untitled Thread" }}
+                                    </p>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{ thread.message_count }} messages
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ thread.updated_at.strftime('%b %d, %H:%M') }}
+                                    </p>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted-foreground text-sm">No conversations yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Available Tools -->
+            <div class="uk-card uk-card-default uk-card-body mt-4">
+                <h3 class="text-lg font-semibold mb-4">Available Tools</h3>
+                <ul class="space-y-2 text-sm">
+                    <li class="flex items-center gap-2">
+                        <uk-icon icon="activity" class="w-4 h-4 text-primary"></uk-icon>
+                        <span>get_system_stats - Check system health</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <uk-icon icon="bar-chart" class="w-4 h-4 text-primary"></uk-icon>
+                        <span>run_analysis - Background data analysis</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

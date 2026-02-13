@@ -1,0 +1,37 @@
+<tr>
+    <td class="font-mono text-sm">{{ item.job_name }}</td>
+    <td>
+        {% if item.status == 'completed' %}
+        <span class="uk-badge" style="background-color: var(--uk-color-green-500);">{{ item.status }}</span>
+        {% elif item.status == 'failed' %}
+        <span class="uk-badge" style="background-color: var(--uk-color-red-500);">{{ item.status }}</span>
+        {% elif item.status == 'running' %}
+        <span class="uk-badge" style="background-color: var(--uk-color-blue-500);">{{ item.status }}</span>
+        {% elif item.status == 'skipped' %}
+        <span class="uk-badge" style="background-color: var(--uk-color-amber-500);">{{ item.status }}</span>
+        {% else %}
+        <span class="uk-badge">{{ item.status }}</span>
+        {% endif %}
+    </td>
+    <td class="text-muted-foreground text-sm">
+        {% if item.started_at %}
+        {{ item.started_at.strftime('%Y-%m-%d %H:%M:%S') }}
+        {% else %}
+        -
+        {% endif %}
+    </td>
+    <td class="text-muted-foreground text-sm">
+        {% if item.duration_ms %}
+        {{ (item.duration_ms / 1000) | round(2) }}s
+        {% else %}
+        -
+        {% endif %}
+    </td>
+    <td class="text-sm max-w-xs truncate">
+        {% if item.error %}
+        <span class="text-red-600" title="{{ item.error }}">{{ item.error[:50] }}{% if item.error|length > 50 %}...{% endif %}</span>
+        {% else %}
+        -
+        {% endif %}
+    </td>
+</tr>

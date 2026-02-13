@@ -1,0 +1,139 @@
+{% from "components/cards.html" import info_card, stat_card %}
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold">Dashboard</h1>
+    <p class="text-muted-foreground mt-2">Welcome back, {{ user.email }}</p>
+</div>
+
+<!-- Stats Row -->
+<div class="grid gap-4 md:grid-cols-4 mb-8">
+    {{ stat_card("Total Widgets", total_widgets, "All your widgets") }}
+    {{ stat_card("Active", active_widgets, "Currently active") }}
+    {{ stat_card("Drafts", draft_widgets, "Work in progress") }}
+    {{ stat_card("Member Since", user.created_at.strftime('%b %Y')) }}
+</div>
+
+<!-- Main Content -->
+<div class="grid gap-6 md:grid-cols-2">
+    <!-- Recent Widgets -->
+    <div class="md:col-span-2">
+        <div class="uk-card uk-card-default">
+            <div class="uk-card-header flex items-center justify-between">
+                <h3 class="uk-card-title">Recent Widgets</h3>
+                <a href="/app/widgets"
+                   hx-get="/app/widgets"
+                   hx-target="#main-content"
+                   hx-push-url="true"
+                   class="uk-button uk-button-default uk-button-small">
+                    View All
+                </a>
+            </div>
+            <div class="uk-card-body p-0">
+                {% if recent_widgets %}
+                <table class="uk-table uk-table-divider uk-table-hover uk-table-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for widget in recent_widgets %}
+                        <tr>
+                            <td>
+                                <a href="/app/widgets/{{ widget.id }}"
+                                   hx-get="/app/widgets/{{ widget.id }}"
+                                   hx-target="#main-content"
+                                   hx-push-url="true"
+                                   class="font-medium hover:text-primary">
+                                    {{ widget.name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if widget.status == 'active' %}
+                                <span class="uk-badge uk-badge-success">Active</span>
+                                {% elif widget.status == 'draft' %}
+                                <span class="uk-badge uk-badge-secondary">Draft</span>
+                                {% elif widget.status == 'archived' %}
+                                <span class="uk-badge uk-badge-muted">Archived</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-sm text-muted-foreground">
+                                {{ widget.created_at.strftime('%b %d') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-8 text-center">
+                    <uk-icon icon="package" class="w-12 h-12 mb-4 opacity-50"></uk-icon>
+                    <p class="text-muted-foreground mb-4">No widgets yet. Create your first one!</p>
+                    <a href="/app/widgets/new"
+                       hx-get="/app/widgets/new"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="uk-button uk-button-primary">
+                        <uk-icon icon="plus" class="w-4 h-4 mr-2"></uk-icon>
+                        New Widget
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div>
+        {% set actions_content %}
+            <ul class="space-y-2">
+                <li>
+                    <a href="/app/widgets/new"
+                       hx-get="/app/widgets/new"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="uk-link flex items-center gap-2">
+                        <uk-icon icon="plus" class="w-4 h-4"></uk-icon>
+                        Create New Widget
+                    </a>
+                </li>
+                <li>
+                    <a href="/app/widgets"
+                       hx-get="/app/widgets"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="uk-link flex items-center gap-2">
+                        <uk-icon icon="package" class="w-4 h-4"></uk-icon>
+                        View All Widgets
+                    </a>
+                </li>
+                <li>
+                    <a href="/app/settings"
+                       hx-get="/app/settings"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="uk-link flex items-center gap-2">
+                        <uk-icon icon="settings" class="w-4 h-4"></uk-icon>
+                        Account Settings
+                    </a>
+                </li>
+            </ul>
+        {% endset %}
+        {{ info_card("Quick Actions", actions_content) }}
+    </div>
+
+    <!-- API Access -->
+    <div>
+        {% set api_content %}
+            <p class="text-sm text-muted-foreground mb-4">
+                Access your data programmatically via our API.
+            </p>
+            <a href="/api/v0/auth/whoami" class="uk-link-muted text-sm">
+                <uk-icon icon="external-link" class="w-3 h-3 mr-1"></uk-icon>
+                View API Response
+            </a>
+        {% endset %}
+        {{ info_card("API Access", api_content) }}
+    </div>
+</div>

@@ -1,0 +1,62 @@
+<tr class="user-row" id="user-{{ target_user.id }}">
+    <td>
+        <span class="text-primary">{{ target_user.email }}</span>
+    </td>
+    <td>
+        {% if target_user.role == 'admin' %}
+        <span class="uk-badge uk-badge-primary">Admin</span>
+        {% else %}
+        <span class="uk-badge">User</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if target_user.approved %}
+        <span class="uk-badge" style="background-color: var(--uk-color-green-500);">Approved</span>
+        {% else %}
+        <span class="uk-badge" style="background-color: var(--uk-color-amber-500);">Pending</span>
+        {% endif %}
+    </td>
+    <td class="text-muted-foreground text-sm">
+        {{ target_user.created_at.strftime('%Y-%m-%d') }}
+    </td>
+    <td class="text-right">
+        <div class="flex justify-end gap-2">
+            {% if not target_user.approved %}
+            <button hx-post="/_admin/users/{{ target_user.id }}/approve"
+                    hx-target="#user-{{ target_user.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Approve {{ target_user.email }}?"
+                    class="uk-button uk-button-small uk-button-primary">
+                Approve
+            </button>
+            {% else %}
+            <button hx-post="/_admin/users/{{ target_user.id }}/revoke"
+                    hx-target="#user-{{ target_user.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Revoke access for {{ target_user.email }}?"
+                    class="uk-button uk-button-small uk-button-default {% if target_user.id == user.id %}opacity-50 cursor-not-allowed{% endif %}"
+                    {% if target_user.id == user.id %}disabled title="Cannot revoke your own access"{% endif %}>
+                Revoke
+            </button>
+            {% endif %}
+            {% if target_user.role != 'admin' %}
+            <button hx-post="/_admin/users/{{ target_user.id }}/promote"
+                    hx-target="#user-{{ target_user.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Promote {{ target_user.email }} to admin?"
+                    class="uk-button uk-button-small uk-button-primary">
+                Promote
+            </button>
+            {% else %}
+            <button hx-post="/_admin/users/{{ target_user.id }}/demote"
+                    hx-target="#user-{{ target_user.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Demote {{ target_user.email }} from admin?"
+                    class="uk-button uk-button-small uk-button-danger {% if target_user.id == user.id %}opacity-50 cursor-not-allowed{% endif %}"
+                    {% if target_user.id == user.id %}disabled title="Cannot demote yourself"{% endif %}>
+                Demote
+            </button>
+            {% endif %}
+        </div>
+    </td>
+</tr>

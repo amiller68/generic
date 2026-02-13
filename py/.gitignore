@@ -4,11 +4,5 @@ __pycache__
 .pytest_cache
 .mypy_cache
 
-# Copied branding assets (source is in ../branding/assets/)
-static/favicon.ico
-static/favicon.png
-static/icon.png
-static/icon.svg
-
-# Built styles (source is in ./styles/)
-static/css/main.css
+# Built styles (source is in apps/py-app/styles/)
+apps/py-app/static/css/main.css

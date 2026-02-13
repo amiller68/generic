@@ -1,0 +1,16 @@
+# User seed configuration.
+#
+# Users listed here will be created if they don't exist.
+# Existing users will be updated to match these settings.
+#
+# Role values: admin (or omit for regular user)
+# Approved: true/false (defaults to true if not specified)
+#
+# NOTE: Replace the admin email below with your dev team's personal or work
+# email for easy testing during development.
+
+users:
+  # Developer admin user - replace with your team's email
+  - email: "al@krondor.org"
+    role: admin
+    approved: true

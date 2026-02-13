@@ -1,0 +1,19 @@
+LOCUS       insert                    21 bp    DNA     linear   UNK 01-JAN-1980
+DEFINITION  Protocol construct.
+ACCESSION   A2Hv9GtUr6LNwoRz
+VERSION     A2Hv9GtUr6LNwoRz
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     proto_meta      1..21
+                     /protocol_construct_id="con_A2Hv9GtUr6LNwoRzr3FqbS"
+                     /overhang_5="GATC"
+                     /overhang_3="AATT"
+     CDS             7..15
+                     /protocol_feature_id="ftr_U1NQeXVJG7odWWRFekuXYX"
+                     /label="marker"
+ORIGIN
+        1 aaaaaaatga aacgtaaaaa a
+//

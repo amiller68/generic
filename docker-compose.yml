@@ -1,0 +1,105 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ${PROJECT_NAME:-generic}-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${PROJECT_NAME:-generic}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${PROJECT_NAME:-generic}-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: py/Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: ${PROJECT_NAME:-generic}-py-app
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_URL: postgresql://postgres:postgres@postgres:5432/${PROJECT_NAME:-generic}
+      REDIS_URL: redis://redis:6379
+      HOST_NAME: http://localhost:8000
+      DEBUG: "true"
+      GOOGLE_O_AUTH_CLIENT_ID: ${GOOGLE_O_AUTH_CLIENT_ID}
+      GOOGLE_O_AUTH_CLIENT_SECRET: ${GOOGLE_O_AUTH_CLIENT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: py/Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: ${PROJECT_NAME:-generic}-worker
+    command: ["sh", "-c", "cd /app/apps/py-app && uv run taskiq worker src.tasks:broker --fs-discover --tasks-pattern '**/tasks/**/*.py'"]
+    environment:
+      POSTGRES_URL: postgresql://postgres:postgres@postgres:5432/${PROJECT_NAME:-generic}
+      REDIS_URL: redis://redis:6379
+      GOOGLE_O_AUTH_CLIENT_ID: ${GOOGLE_O_AUTH_CLIENT_ID}
+      GOOGLE_O_AUTH_CLIENT_SECRET: ${GOOGLE_O_AUTH_CLIENT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: py/Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: ${PROJECT_NAME:-generic}-scheduler
+    command: ["sh", "-c", "cd /app/apps/py-app && uv run taskiq scheduler src.tasks.scheduler:scheduler"]
+    environment:
+      POSTGRES_URL: postgresql://postgres:postgres@postgres:5432/${PROJECT_NAME:-generic}
+      REDIS_URL: redis://redis:6379
+      GOOGLE_O_AUTH_CLIENT_ID: ${GOOGLE_O_AUTH_CLIENT_ID}
+      GOOGLE_O_AUTH_CLIENT_SECRET: ${GOOGLE_O_AUTH_CLIENT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+    name: ${PROJECT_NAME:-generic}-postgres-data
+  redis-data:
+    name: ${PROJECT_NAME:-generic}-redis-data

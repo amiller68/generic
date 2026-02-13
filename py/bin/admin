@@ -1,0 +1,409 @@
+#!/bin/bash
+
+# admin - Administrative tools for managing deployed infrastructure
+# Subcommands: db
+#
+# See py/docs/ADMIN.md for documentation.
+
+set -euo pipefail
+
+# Go up two levels: py/bin/ -> py/ -> project root
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+source "$PROJECT_ROOT/bin/utils"
+source "$PROJECT_ROOT/bin/config"
+source "$PROJECT_ROOT/bin/vault"
+
+# Function to show main usage
+usage() {
+    echo -e "${YELLOW}Admin Tools${NC}"
+    echo ""
+    echo "Usage: $0 <stage> <command> [subcommand] [options]"
+    echo ""
+    echo "Stages:"
+    echo "  ${STAGES}"
+    echo ""
+    echo "Commands:"
+    echo "  db              Database access tools (psql, pgadmin, tunnel)"
+    echo ""
+    echo "Examples:"
+    echo "  $0 production db shell      # Open psql shell to production"
+    echo "  $0 production db pgadmin    # Launch pgAdmin connected to production"
+    echo "  $0 production db tunnel     # Create tunnel on localhost:5434"
+    echo ""
+    exit 1
+}
+
+# Function to show db usage
+db_usage() {
+    echo -e "${YELLOW}Database Access Tools${NC}"
+    echo ""
+    echo "Usage: $0 <stage> db <subcommand> [options]"
+    echo ""
+    echo "Subcommands:"
+    echo "  shell, psql     Open a psql shell (requires psql installed)"
+    echo "  pgadmin         Launch pgAdmin in Docker with pre-configured connection"
+    echo "  tunnel          Create an SSH tunnel (for external clients)"
+    echo ""
+    echo "Options:"
+    echo "  --port <port>   Local port for tunnel/pgadmin (default: 5434)"
+    echo ""
+    echo "Examples:"
+    echo "  $0 production db shell"
+    echo "  $0 production db pgadmin"
+    echo "  $0 production db tunnel --port 5435"
+    echo ""
+    exit 1
+}
+
+# Check arguments
+if [[ $# -lt 2 ]]; then
+    usage
+fi
+
+STAGE="$1"
+COMMAND="$2"
+shift 2
+
+# Validate stage
+if ! is_in_list "$STAGES" "$STAGE"; then
+    print_error "Unknown stage: $STAGE"
+    echo "Available stages: $STAGES"
+    exit 1
+fi
+
+# Container registry stage not supported for most commands
+if [[ "$STAGE" == "container-registry" ]]; then
+    print_error "Container registry stage does not support admin commands"
+    exit 1
+fi
+
+# ============================================================================
+# Common infrastructure setup (SSH key, server IP)
+# ============================================================================
+
+setup_ssh() {
+    print_info "Fetching server information for $STAGE..."
+
+    # Temporarily disable errexit for terraform commands
+    set +e
+    SERVER_IP=$("$PROJECT_ROOT/bin/iac" "$STAGE" output -raw server_ip 2>&1 | tail -n 1)
+    IAC_EXIT_CODE=$?
+    set -e
+
+    if [[ $IAC_EXIT_CODE -ne 0 ]] || [[ -z "$SERVER_IP" ]] || [[ "$SERVER_IP" == *"Error"* ]]; then
+        print_error "Could not determine server IP for stage: $STAGE"
+        echo "Make sure you're authenticated with 1Password (see docs/setup/ONE_PASSWORD.md)"
+        echo "And that Terraform is initialized: bin/iac $STAGE init"
+        exit 1
+    fi
+
+    set +e
+    SSH_PRIVATE_KEY=$("$PROJECT_ROOT/bin/iac" "$STAGE" output -raw ssh_private_key 2>/dev/null | tail -n -13)
+    set -e
+
+    if [[ -z "$SSH_PRIVATE_KEY" ]]; then
+        print_error "Could not retrieve SSH private key for stage: $STAGE"
+        exit 1
+    fi
+
+    # Write SSH private key to temp file
+    SSH_PRIVATE_KEY_FILE=$(mktemp)
+    echo "$SSH_PRIVATE_KEY" > "$SSH_PRIVATE_KEY_FILE"
+    chmod 600 "$SSH_PRIVATE_KEY_FILE"
+
+    # Export for use in subcommands
+    export SERVER_IP
+    export SSH_PRIVATE_KEY_FILE
+}
+
+# Cleanup function
+cleanup() {
+    if [[ -n "${SSH_PRIVATE_KEY_FILE:-}" ]] && [[ -f "$SSH_PRIVATE_KEY_FILE" ]]; then
+        rm -f "$SSH_PRIVATE_KEY_FILE"
+    fi
+    # Kill background tunnel if it exists
+    if [[ -n "${TUNNEL_PID:-}" ]]; then
+        kill "$TUNNEL_PID" 2>/dev/null || true
+    fi
+}
+trap cleanup EXIT
+
+# ============================================================================
+# DB Command
+# ============================================================================
+
+cmd_db() {
+    # Database settings
+    local LOCAL_PORT="${LOCAL_PORT:-5434}"
+    local REMOTE_PORT="5432"
+    local DB_NAME="postgres"
+    local DB_USER="postgres"
+    local DB_PASSWORD="postgres"
+
+    if [[ $# -lt 1 ]]; then
+        db_usage
+    fi
+
+    local SUBCOMMAND="$1"
+    shift
+
+    # Parse additional options
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --port)
+                LOCAL_PORT="$2"
+                shift 2
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                db_usage
+                ;;
+        esac
+    done
+
+    # Setup SSH connection
+    setup_ssh
+
+    # Start SSH tunnel in background
+    start_db_tunnel() {
+        local port="$1"
+        local bind_all="${2:-false}"
+        local bind_addr="localhost"
+
+        if [[ "$bind_all" == "true" ]]; then
+            bind_addr="0.0.0.0"
+        fi
+
+        # Check if port is already in use
+        if lsof -i ":$port" > /dev/null 2>&1; then
+            print_error "Port $port is already in use"
+            echo "Try a different port with --port <port>"
+            exit 1
+        fi
+
+        print_info "Starting SSH tunnel on ${bind_addr}:$port..."
+        ssh -N -f \
+            -L "${bind_addr}:${port}:localhost:$REMOTE_PORT" \
+            -i "$SSH_PRIVATE_KEY_FILE" \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o LogLevel=ERROR \
+            -o ServerAliveInterval=60 \
+            -o ServerAliveCountMax=3 \
+            -o ExitOnForwardFailure=yes \
+            "root@$SERVER_IP"
+
+        # Find the tunnel PID
+        TUNNEL_PID=$(lsof -t -i ":$port" 2>/dev/null | head -1 || echo "")
+
+        # Wait a moment for tunnel to establish
+        sleep 1
+
+        if ! lsof -i ":$port" > /dev/null 2>&1; then
+            print_error "Failed to establish SSH tunnel"
+            exit 1
+        fi
+
+        print_success "Tunnel established"
+    }
+
+    case "$SUBCOMMAND" in
+        shell|psql)
+            if ! command -v psql &> /dev/null; then
+                print_error "psql is not installed"
+                echo "Install it with: brew install postgresql"
+                exit 1
+            fi
+
+            start_db_tunnel "$LOCAL_PORT"
+
+            print_header "PostgreSQL Shell ($STAGE)"
+            echo ""
+            print_info "Connected to $STAGE database via localhost:$LOCAL_PORT"
+            echo ""
+
+            PGPASSWORD="$DB_PASSWORD" psql \
+                -h localhost \
+                -p "$LOCAL_PORT" \
+                -U "$DB_USER" \
+                -d "$DB_NAME"
+            ;;
+
+        pgadmin)
+            if ! command -v docker &> /dev/null; then
+                print_error "Docker is not installed or not running"
+                exit 1
+            fi
+
+            # pgAdmin container settings
+            local PGADMIN_PORT="5050"
+            local PGADMIN_EMAIL="admin@geney.ai"
+            local PGADMIN_PASSWORD="admin"
+            local CONTAINER_NAME="${PROJECT_NAME}-pgadmin-${STAGE}"
+
+            # Check if port is in use
+            if lsof -i ":$LOCAL_PORT" > /dev/null 2>&1; then
+                print_error "Port $LOCAL_PORT is already in use (tunnel port)"
+                echo "Try a different port with --port <port>"
+                exit 1
+            fi
+
+            if lsof -i ":$PGADMIN_PORT" > /dev/null 2>&1; then
+                print_error "Port $PGADMIN_PORT is already in use (pgAdmin port)"
+                exit 1
+            fi
+
+            # Stop any existing pgAdmin container with same name
+            if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+                print_info "Stopping existing pgAdmin container..."
+                docker stop "$CONTAINER_NAME" 2>/dev/null || true
+                docker rm "$CONTAINER_NAME" 2>/dev/null || true
+            fi
+
+            print_header "Launching pgAdmin ($STAGE)"
+            echo ""
+
+            # Create servers.json for auto-configuration
+            local SERVERS_JSON=$(mktemp)
+            cat > "$SERVERS_JSON" << EOF
+{
+    "Servers": {
+        "1": {
+            "Name": "${PROJECT_NAME}-${STAGE}",
+            "Group": "Servers",
+            "Host": "host.docker.internal",
+            "Port": ${LOCAL_PORT},
+            "MaintenanceDB": "${DB_NAME}",
+            "Username": "${DB_USER}",
+            "SSLMode": "prefer",
+            "PassFile": "/pgpass"
+        }
+    }
+}
+EOF
+
+            # Create pgpass file for auto-login
+            local PGPASS_FILE=$(mktemp)
+            echo "host.docker.internal:${LOCAL_PORT}:${DB_NAME}:${DB_USER}:${DB_PASSWORD}" > "$PGPASS_FILE"
+            chmod 600 "$PGPASS_FILE"
+
+            print_info "Starting pgAdmin container..."
+
+            docker run -d \
+                --name "$CONTAINER_NAME" \
+                --rm \
+                -p "${PGADMIN_PORT}:80" \
+                -e "PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}" \
+                -e "PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}" \
+                -e "PGADMIN_CONFIG_SERVER_MODE=False" \
+                -e "PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False" \
+                -v "${SERVERS_JSON}:/pgadmin4/servers.json:ro" \
+                -v "${PGPASS_FILE}:/pgpass:ro" \
+                dpage/pgadmin4:latest > /dev/null
+
+            print_success "pgAdmin container started"
+            echo ""
+            echo -e "${CYAN}pgAdmin Access:${NC}"
+            echo "  URL:      http://localhost:$PGADMIN_PORT"
+            echo "  Email:    $PGADMIN_EMAIL"
+            echo "  Password: $PGADMIN_PASSWORD"
+            echo ""
+            echo -e "${CYAN}Database Connection:${NC}"
+            echo "  Server:   ${PROJECT_NAME}-${STAGE} (pre-configured)"
+            echo "  Password: $DB_PASSWORD (when prompted)"
+            echo ""
+
+            # Wait for pgAdmin to be ready
+            print_info "Waiting for pgAdmin to start..."
+            for i in {1..30}; do
+                if curl -s "http://localhost:$PGADMIN_PORT" > /dev/null 2>&1; then
+                    break
+                fi
+                sleep 1
+            done
+
+            echo ""
+            print_success "Opening pgAdmin in browser..."
+            open "http://localhost:$PGADMIN_PORT"
+
+            echo ""
+            echo -e "${GRAY}pgAdmin is running in Docker.${NC}"
+            echo -e "${GRAY}To stop pgAdmin: docker stop $CONTAINER_NAME${NC}"
+            echo ""
+            echo -e "${YELLOW}Starting SSH tunnel (keep this terminal open)...${NC}"
+            echo -e "${YELLOW}Press Ctrl+C to stop the tunnel (pgAdmin will lose DB connection)${NC}"
+            echo ""
+
+            # Run tunnel in foreground - this keeps the script alive and the tunnel open
+            # Bind to 0.0.0.0 so Docker container can reach it via host.docker.internal
+            ssh -N \
+                -L "0.0.0.0:${LOCAL_PORT}:localhost:${REMOTE_PORT}" \
+                -i "$SSH_PRIVATE_KEY_FILE" \
+                -o StrictHostKeyChecking=no \
+                -o UserKnownHostsFile=/dev/null \
+                -o LogLevel=ERROR \
+                -o ServerAliveInterval=60 \
+                -o ServerAliveCountMax=3 \
+                "root@$SERVER_IP"
+            ;;
+
+        tunnel)
+            print_header "PostgreSQL SSH Tunnel ($STAGE)"
+            echo ""
+            print_info "Stage: $STAGE"
+            print_info "Server: $SERVER_IP"
+            print_info "Tunnel: localhost:$LOCAL_PORT -> $SERVER_IP:$REMOTE_PORT"
+            echo ""
+
+            # Check if port is already in use
+            if lsof -i ":$LOCAL_PORT" > /dev/null 2>&1; then
+                print_error "Port $LOCAL_PORT is already in use"
+                echo "Try a different port: $0 $STAGE db tunnel --port 5435"
+                exit 1
+            fi
+
+            print_success "Tunnel is starting..."
+            echo ""
+            echo -e "${CYAN}Connection details:${NC}"
+            echo "  Host:     localhost"
+            echo "  Port:     $LOCAL_PORT"
+            echo "  Database: $DB_NAME"
+            echo "  Username: $DB_USER"
+            echo "  Password: $DB_PASSWORD"
+            echo ""
+            echo -e "${GRAY}Press Ctrl+C to close the tunnel${NC}"
+            echo ""
+
+            # Start tunnel in foreground
+            ssh -N \
+                -L "$LOCAL_PORT:localhost:$REMOTE_PORT" \
+                -i "$SSH_PRIVATE_KEY_FILE" \
+                -o StrictHostKeyChecking=no \
+                -o UserKnownHostsFile=/dev/null \
+                -o LogLevel=ERROR \
+                -o ServerAliveInterval=60 \
+                -o ServerAliveCountMax=3 \
+                "root@$SERVER_IP"
+            ;;
+
+        *)
+            print_error "Unknown db subcommand: $SUBCOMMAND"
+            db_usage
+            ;;
+    esac
+}
+
+# ============================================================================
+# Main command dispatch
+# ============================================================================
+
+case "$COMMAND" in
+    db)
+        cmd_db "$@"
+        ;;
+    *)
+        print_error "Unknown command: $COMMAND"
+        usage
+        ;;
+esac

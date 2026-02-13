@@ -1,6 +1,3 @@
-ARGS ?=
-
-# TODO: Add more projects as needed here
 PROJECTS := py ts
 
 .PHONY: help
@@ -42,7 +39,6 @@ check: ## Check all projects
 check-%: ## Check the given project
 	@$(MAKE) run-for PROJECT=$(@:check-%=%) CMD=check
 
-
 .PHONY: install
 install: ## Install dependencies for all projects
 	@for project in $(PROJECTS); do \
@@ -80,6 +76,18 @@ test: ## Run tests for all projects
 .PHONY: test-%
 test-%: ## Run tests for the given project
 	@$(MAKE) run-for PROJECT=$(@:test-%=%) CMD=test
+
+.PHONY: test-unit
+test-unit: ## Run unit tests (no external dependencies)
+	@for project in $(PROJECTS); do \
+		$(MAKE) run-for PROJECT=$$project CMD=test-unit; \
+	done
+
+.PHONY: test-integration
+test-integration: ## Run integration tests (requires local services)
+	@for project in $(PROJECTS); do \
+		$(MAKE) run-for PROJECT=$$project CMD=test-integration; \
+	done
 
 .PHONY: lint
 lint: ## Run linters for all projects
@@ -121,6 +129,36 @@ types: ## Run type checking for all projects
 types-%: ## Run type checking for the given project
 	@$(MAKE) run-for PROJECT=$(@:types-%=%) CMD=types
 
+.PHONY: setup
+setup: ## Setup local development (database + redis)
+	@for project in $(PROJECTS); do \
+		$(MAKE) run-for PROJECT=$$project CMD=setup; \
+	done
+
+.PHONY: setup-%
+setup-%: ## Setup local development for the given project
+	@$(MAKE) run-for PROJECT=$(@:setup-%=%) CMD=setup
+
+.PHONY: wipe
+wipe: ## Drop all databases (keeps containers running)
+	@for project in $(PROJECTS); do \
+		$(MAKE) run-for PROJECT=$$project CMD=wipe; \
+	done
+
+.PHONY: wipe-%
+wipe-%: ## Drop databases for the given project
+	@$(MAKE) run-for PROJECT=$(@:wipe-%=%) CMD=wipe
+
+.PHONY: teardown
+teardown: ## Stop and remove all containers and volumes
+	@for project in $(PROJECTS); do \
+		$(MAKE) run-for PROJECT=$$project CMD=teardown; \
+	done
+
+.PHONY: teardown-%
+teardown-%: ## Teardown containers for the given project
+	@$(MAKE) run-for PROJECT=$(@:teardown-%=%) CMD=teardown
+
 .PHONY: docker-build
 docker-build: ## Build Docker images for all projects
 	@for project in $(PROJECTS); do \
@@ -130,6 +168,18 @@ docker-build: ## Build Docker images for all projects
 .PHONY: docker-build-%
 docker-build-%: ## Build Docker image for the given project
 	@$(MAKE) run-for PROJECT=$(@:docker-build-%=%) CMD=docker-build
+
+.PHONY: docker-up
+docker-up: ## Start docker-compose with vault secrets (rebuilds images)
+	@./bin/vault run --stage development -- docker compose up --build
+
+.PHONY: docker-down
+docker-down: ## Stop docker-compose
+	@docker compose down
+
+.PHONY: docker-clean
+docker-clean: ## Remove docker images and volumes
+	@docker compose down -v --rmi local
 
 .PHONY: clean
 clean: ## Clean all projects
@@ -141,25 +191,33 @@ clean: ## Clean all projects
 clean-%: ## Clean the given project
 	@$(MAKE) run-for PROJECT=$(@:clean-%=%) CMD=clean
 
-.PHONY: styles
-styles: ## Build styles for all projects
-	@for project in $(PROJECTS); do \
-		$(MAKE) run-for PROJECT=$$project CMD=styles; \
-	done
+.PHONY: ports
+ports: ## Show dev server port assignment for current branch
+	@./bin/worktree-ports
 
-.PHONY: styles-%
-styles-%: ## Build styles for the given project
-	@$(MAKE) run-for PROJECT=$(@:styles-%=%) CMD=styles
+.PHONY: worktree-create
+worktree-create: ## Create a new git worktree - usage: make worktree-create BRANCH=<branch-name>
+	@if [ -z "$(BRANCH)" ]; then \
+		echo "Error: BRANCH is required. Usage: make worktree-create BRANCH=feature/my-branch"; \
+		exit 1; \
+	fi
+	@./bin/worktree --repo . create $(BRANCH)
 
-.PHONY: styles-watch
-styles-watch: ## Watch styles for all projects
-	@for project in $(PROJECTS); do \
-		$(MAKE) run-for PROJECT=$$project CMD=styles-watch; \
-	done
+.PHONY: worktree-list
+worktree-list: ## List all git worktrees
+	@./bin/worktree --repo . list
 
-.PHONY: styles-watch-%
-styles-watch-%: ## Watch styles for the given project
-	@$(MAKE) run-for PROJECT=$(@:styles-watch-%=%) CMD=styles-watch
+.PHONY: worktree-remove
+worktree-remove: ## Remove a git worktree - usage: make worktree-remove BRANCH=<branch-name>
+	@if [ -z "$(BRANCH)" ]; then \
+		echo "Error: BRANCH is required. Usage: make worktree-remove BRANCH=feature/my-branch"; \
+		exit 1; \
+	fi
+	@./bin/worktree --repo . remove $(BRANCH)
+
+.PHONY: worktree-cleanup
+worktree-cleanup: ## Remove all git worktrees
+	@./bin/worktree --repo . cleanup
 
 # Terraform Cloud management - pass all arguments after 'tfc' to the script
 .PHONY: tfc
@@ -174,8 +232,8 @@ iac: ## Infrastructure management - run terraform with vault secrets
 
 # Deployment management - pass all arguments after 'deploy' to the kamal script
 .PHONY: kamal
-kamal: ## Deploy services using Kamal - usage: make deploy ARGS="<service> <stage> <command>"
-	@./bin/kamal $(ARGS)
+kamal: ## Deploy services using Kamal - usage: make kamal <service> <stage> <command>
+	@./bin/kamal $(filter-out $@,$(MAKECMDGOALS))
 
 # Catch additional arguments to tfc, ghcr, iac, and deploy commands
 %:

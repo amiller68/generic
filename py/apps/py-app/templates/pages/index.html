@@ -1,0 +1,117 @@
+{% from "components/cards.html" import feature_card %}
+
+<!-- Hero Section -->
+<section class="min-h-screen flex items-center py-12">
+    <div class="uk-container">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <h1 class="text-5xl font-bold mb-6">
+                    <span class="gradient-text">generic</span>
+                </h1>
+                <p class="text-xl text-muted-foreground mb-8">
+                    A fullstack Python template with AI chat, background jobs, and real-time streaming. Built with FastAPI, htmx, and pydantic-ai.
+                </p>
+                <div class="flex gap-4">
+                    <a href="/app/dashboard" class="bg-foreground text-background hover:bg-foreground/90 px-6 py-3 rounded-full flex items-center gap-2 font-medium transition-all duration-200 shadow-lg hover:shadow-xl border border-foreground/20">
+                        Try it out
+                        <uk-icon icon="arrow-right" class="w-4 h-4"></uk-icon>
+                    </a>
+                    <a href="#what-you-get" class="bg-background text-foreground hover:bg-muted border border-border px-6 py-3 rounded-full font-medium transition-all duration-200 shadow-md hover:shadow-lg" uk-scroll>
+                        What's included
+                    </a>
+                </div>
+            </div>
+            <div class="text-center">
+                <img src="/static/icon.svg" alt="generic" class="mx-auto w-full" style="max-width: 500px; height: 500px; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- What's Included Section -->
+<section id="what-you-get" class="py-20 bg-muted">
+    <div class="uk-container">
+        <h2 class="text-3xl font-bold text-center mb-4">What you get</h2>
+        <p class="text-xl text-center text-muted-foreground mb-12">A good starting base for long-term projects that's easy to maintain and extend</p>
+
+        <div class="grid gap-6 md:grid-cols-3">
+            <div class="text-center">
+                {{ feature_card(
+                    title="FastAPI + Postgres",
+                    description="Modern async Python backend with database migrations and type safety built in.",
+                    icon="database",
+                    badge="Backend"
+                ) }}
+            </div>
+            <div class="text-center">
+                {{ feature_card(
+                    title="OAuth Ready",
+                    description="User authentication and sessions handled. Just connect your OAuth provider.",
+                    icon="user",
+                    badge="Auth"
+                ) }}
+            </div>
+            <div class="text-center">
+                {{ feature_card(
+                    title="Clean UI Foundation",
+                    description="Tailwind CSS with UIkit components. Dark mode and responsive design included.",
+                    icon="paintbrush",
+                    badge="UI"
+                ) }}
+            </div>
+        </div>
+
+        <div class="mt-12 grid gap-6 md:grid-cols-2">
+            <div class="text-center">
+                {{ feature_card(
+                    title="Development Ready",
+                    description="Type checking, linting, testing, and hot reload configured out of the box.",
+                    icon="code",
+                    badge="DevX"
+                ) }}
+            </div>
+            <div class="text-center">
+                {{ feature_card(
+                    title="Deploy Anywhere",
+                    description="Docker containerized with simple deployment configurations included.",
+                    icon="cloud",
+                    badge="Deploy"
+                ) }}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-20">
+    <div class="uk-container">
+        <h2 class="text-3xl font-bold text-center mb-4">What's built</h2>
+        <p class="text-xl text-center text-muted-foreground mb-12">Production patterns included out of the box</p>
+
+        <div class="max-w-2xl mx-auto">
+            <div class="space-y-6">
+                <div class="flex items-start gap-4 p-4 bg-muted rounded-lg">
+                    <uk-icon icon="check" class="text-primary mt-1"></uk-icon>
+                    <div>
+                        <h3 class="font-semibold mb-2">AI Chat with Streaming</h3>
+                        <p class="text-muted-foreground">Admin-only AI assistant with SSE streaming, tool calling, and Redis-based cancellation.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-muted rounded-lg">
+                    <uk-icon icon="check" class="text-primary mt-1"></uk-icon>
+                    <div>
+                        <h3 class="font-semibold mb-2">Background Jobs with TaskIQ</h3>
+                        <p class="text-muted-foreground">Async task queue with Redis broker, declarative cron jobs, and distributed locking.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-muted rounded-lg">
+                    <uk-icon icon="check" class="text-primary mt-1"></uk-icon>
+                    <div>
+                        <h3 class="font-semibold mb-2">Monorepo with Turbo</h3>
+                        <p class="text-muted-foreground">Shared py-core library with SQLAlchemy 2.0, PgEnum types, and uuid7 IDs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

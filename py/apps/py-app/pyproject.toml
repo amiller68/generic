@@ -1,0 +1,46 @@
+[project]
+name = "py-app"
+version = "0.1.0"
+description = "Web application for generic"
+requires-python = ">=3.12"
+dependencies = [
+    "py-core",
+    "uvicorn",
+    "fastapi",
+    "fastapi-sso",
+    "fastapi-login",
+    "python-multipart",
+    "starlette",
+    "sse-starlette",
+    "jinja2",
+    "python-jose[cryptography]",
+    "types-python-jose",
+    "itsdangerous==2.1.2",
+    "werkzeug==3.0.1",
+    "setuptools",
+    "watchfiles",
+    "redis",
+    "taskiq[reload]",
+    "taskiq-redis",
+    "taskiq-fastapi",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.25.3",
+    "black",
+    "ruff",
+    "ty",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ty.rules]
+# TaskIQ's .kiq() method has complex overloads that confuse the type checker
+no-matching-overload = "ignore"

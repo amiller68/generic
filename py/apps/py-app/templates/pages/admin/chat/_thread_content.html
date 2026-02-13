@@ -1,0 +1,257 @@
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold">{{ thread.title or "Chat Thread" }}</h1>
+            <p class="text-muted-foreground text-sm">
+                Started {{ thread.created_at.strftime('%b %d, %Y at %H:%M') }}
+            </p>
+        </div>
+        <a href="/_admin/chat" class="uk-button uk-button-default">
+            <span uk-icon="arrow-left"></span> Back to Chats
+        </a>
+    </div>
+
+    <!-- Messages -->
+    <div class="uk-card uk-card-default uk-card-body">
+        <div id="messages" class="space-y-4 max-h-[500px] overflow-y-auto mb-6"
+             {% if completion_id %}
+             hx-ext="sse"
+             sse-connect="/_events/chat/{{ thread.id }}?completion_id={{ completion_id }}"
+             sse-swap="message"
+             hx-target="#streaming-message"
+             hx-swap="innerHTML"
+             {% endif %}>
+            {% for message in thread.messages %}
+                {# Handle both 'kind' and 'type' field names for compatibility #}
+                {% set has_text = namespace(found=false) %}
+                {% for part in message.parts %}
+                    {% set part_type = part.kind if part.kind is defined else part.type %}
+                    {% if part_type == "text" and part.content %}
+                        {% set has_text.found = true %}
+                    {% endif %}
+                {% endfor %}
+                {% if message.role == "user" and has_text.found %}
+                    <div class="flex justify-end">
+                        <div class="max-w-[80%] bg-primary text-primary-foreground rounded-lg p-4">
+                            {% for part in message.parts %}
+                                {% set part_type = part.kind if part.kind is defined else part.type %}
+                                {% if part_type == "text" and part.content %}
+                                    <p class="whitespace-pre-wrap">{{ part.content }}</p>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% elif message.role == "assistant" %}
+                    <div class="flex justify-start">
+                        <div class="max-w-[80%] bg-muted rounded-lg p-4">
+                            {% for part in message.parts %}
+                                {% set part_type = part.kind if part.kind is defined else part.type %}
+                                {% if part_type == "text" %}
+                                    <div class="prose prose-sm dark:prose-invert">
+                                        {{ part.content|safe }}
+                                    </div>
+                                {% elif part_type == "tool_result" %}
+                                    {# Check if this is an async tool with a completed result #}
+                                    {# part._parsed_result is set in the view handler (JSON parsed) #}
+                                    {% set ref_id = none %}
+                                    {% if part._parsed_result and part._parsed_result.ref_id %}
+                                        {% set ref_id = part._parsed_result.ref_id %}
+                                    {% endif %}
+                                    {% set async_tool = async_tools.get(ref_id) if ref_id and async_tools else none %}
+
+                                    <div class="mt-2 p-3 bg-background rounded border border-border text-sm">
+                                        <p class="text-xs font-medium text-muted-foreground mb-1">
+                                            Tool: {{ part.tool_name }}
+                                            {% if async_tool %}
+                                                {% if async_tool.status.value == 'completed' %}
+                                                    <span class="text-green-600 ml-2">✓ Completed</span>
+                                                {% elif async_tool.status.value == 'failed' %}
+                                                    <span class="text-red-600 ml-2">✗ Failed</span>
+                                                {% else %}
+                                                    <span class="text-yellow-600 ml-2">⏳ Pending</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </p>
+                                        {% if async_tool and async_tool.status.value == 'completed' and async_tool.result %}
+                                            {# Show completed result #}
+                                            {% if async_tool.result.content_parts %}
+                                                {% for cp in async_tool.result.content_parts %}
+                                                    <div class="prose prose-sm dark:prose-invert">{{ cp.content|safe }}</div>
+                                                {% endfor %}
+                                            {% elif async_tool.result.message %}
+                                                <p class="whitespace-pre-wrap">{{ async_tool.result.message }}</p>
+                                            {% else %}
+                                                <p class="whitespace-pre-wrap">{{ async_tool.result|tojson(indent=2) }}</p>
+                                            {% endif %}
+                                        {% elif async_tool and async_tool.status.value == 'failed' %}
+                                            <p class="text-red-600">{{ async_tool.error_message or 'Unknown error' }}</p>
+                                        {% else %}
+                                            {# Show original result (pending or non-async) #}
+                                            {% if part._parsed_result %}
+                                                {% if part._parsed_result.content_parts %}
+                                                    {% for cp in part._parsed_result.content_parts %}
+                                                        <p class="whitespace-pre-wrap">{{ cp.content }}</p>
+                                                    {% endfor %}
+                                                {% elif part._parsed_result.message %}
+                                                    <p class="whitespace-pre-wrap">{{ part._parsed_result.message }}</p>
+                                                {% else %}
+                                                    <p class="whitespace-pre-wrap">{{ part._parsed_result|tojson(indent=2) }}</p>
+                                                {% endif %}
+                                            {% else %}
+                                                <p class="whitespace-pre-wrap">{{ part.result }}</p>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                {% elif part_type == "tool_call" %}
+                                    <div class="mt-2 p-3 bg-muted/50 rounded border border-border text-sm">
+                                        <p class="text-xs font-medium text-muted-foreground">
+                                            Calling: {{ part.tool_name }}
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            {# Streaming message - inside the messages container #}
+            {% if completion_id %}
+                <div id="streaming-bubble" class="flex justify-start">
+                    <div class="max-w-[80%] bg-muted rounded-lg p-4">
+                        <div id="streaming-message" class="prose prose-sm dark:prose-invert">
+                            <span class="animate-pulse text-muted-foreground">Thinking...</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Input area: Stop button OR Send form -->
+        <form id="input-form" class="flex gap-2"
+              {% if completion_id %}
+              action="/_admin/chat/{{ thread.id }}/cancel"
+              {% else %}
+              action="/_admin/chat/{{ thread.id }}/send"
+              {% endif %}
+              method="post">
+            {% if completion_id %}
+                <div class="flex-1 uk-textarea bg-muted/50 flex items-center justify-center text-muted-foreground text-sm">
+                    Assistant is responding...
+                </div>
+                <button type="submit"
+                        id="stop-btn"
+                        class="uk-button uk-button-danger self-end"
+                        onclick="this.disabled = true; this.innerHTML = 'Stopping...';">
+                    <span uk-icon="close"></span> Stop
+                </button>
+            {% else %}
+                <textarea name="message"
+                          rows="2"
+                          class="uk-textarea flex-1"
+                          placeholder="Type your message..."
+                          required></textarea>
+                <button type="submit" class="uk-button uk-button-primary self-end">
+                    <span uk-icon="chevron-right"></span> Send
+                </button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{% if completion_id %}
+<script>
+    (function() {
+        let completed = false;
+
+        // Handle SSE events via htmx:sseMessage
+        document.body.addEventListener('htmx:sseMessage', function(event) {
+            const eventType = event.detail.type;
+
+            // Thread completion events - refresh page
+            if (eventType === 'completed' || eventType === 'cancelled' || eventType === 'failed') {
+                completed = true;
+                setTimeout(function() {
+                    window.location.href = '/_admin/chat/{{ thread.id }}';
+                }, 100);
+            }
+
+            // Async tool completion - refresh page to show result
+            if (eventType === 'tool-completed' || eventType === 'tool-failed') {
+                // Refresh to show the updated thread with tool results
+                window.location.href = '/_admin/chat/{{ thread.id }}';
+            }
+        });
+
+        // Fallback: poll completion status every 5 seconds
+        const completionId = '{{ completion_id }}';
+        const pollInterval = setInterval(async function() {
+            if (completed) {
+                clearInterval(pollInterval);
+                return;
+            }
+            try {
+                const resp = await fetch('/_admin/chat/{{ thread.id }}/status?completion_id=' + completionId);
+                const data = await resp.json();
+                if (data.status === 'completed' || data.status === 'cancelled' || data.status === 'failed') {
+                    completed = true;
+                    clearInterval(pollInterval);
+                    window.location.href = '/_admin/chat/{{ thread.id }}';
+                }
+            } catch (e) {
+                // Ignore poll errors
+            }
+        }, 5000);
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            clearInterval(pollInterval);
+        });
+
+        // Auto-scroll to bottom
+        const messages = document.getElementById('messages');
+        if (messages) {
+            messages.scrollTop = messages.scrollHeight;
+        }
+    })();
+</script>
+{% else %}
+<script>
+    (function() {
+        // Auto-scroll to bottom of messages
+        const messages = document.getElementById('messages');
+        if (messages) {
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Poll for pending async tool executions
+        // These may have been launched during the last completion
+        let lastPendingCount = -1;
+
+        async function checkPendingTools() {
+            try {
+                const resp = await fetch('/_admin/chat/{{ thread.id }}/async-tools');
+                const data = await resp.json();
+
+                // If we had pending tools and now they're done, refresh
+                if (lastPendingCount > 0 && data.pending_count === 0) {
+                    window.location.href = '/_admin/chat/{{ thread.id }}';
+                    return;
+                }
+
+                lastPendingCount = data.pending_count;
+
+                // Keep polling if there are pending tools
+                if (data.pending_count > 0) {
+                    setTimeout(checkPendingTools, 2000);
+                }
+            } catch (e) {
+                // Ignore poll errors
+            }
+        }
+
+        // Start polling after a short delay to allow any just-completed tools to finish
+        setTimeout(checkPendingTools, 1000);
+    })();
+</script>
+{% endif %}

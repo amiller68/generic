@@ -37,4 +37,16 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
-.aider*
+
+# Claude Code
+.claude/settings.local.json
+
+# Worktrees
+.worktrees/
+worktrees/
+
+# Dev server info
+.dev-server
+
+# TypeScript
+tsconfig.tsbuildinfo

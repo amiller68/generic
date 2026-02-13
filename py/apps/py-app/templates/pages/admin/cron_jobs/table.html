@@ -1,0 +1,66 @@
+<div class="uk-card uk-card-default">
+    <table class="uk-table uk-table-divider uk-table-hover uk-table-middle">
+        <thead>
+            <tr>
+                <th>Job Name</th>
+                <th>Status</th>
+                <th>Started At</th>
+                <th>Duration</th>
+                <th>Error</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            {% include "pages/admin/cron_jobs/row.html" %}
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center text-muted-foreground py-8">
+                    No cron job runs found
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="flex justify-center mt-4">
+    <nav>
+        <ul class="uk-pagination">
+            {% if page > 1 %}
+            <li>
+                <a href="/_admin/cron-jobs?page={{ page - 1 }}&job_name={{ job_name }}&status={{ status }}"
+                   hx-get="/_admin/cron-jobs?page={{ page - 1 }}&job_name={{ job_name }}&status={{ status }}"
+                   hx-target="#main-table"
+                   hx-push-url="true">
+                    <span uk-pagination-previous></span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+            <li {% if p == page %}class="uk-active"{% endif %}>
+                <a href="/_admin/cron-jobs?page={{ p }}&job_name={{ job_name }}&status={{ status }}"
+                   hx-get="/_admin/cron-jobs?page={{ p }}&job_name={{ job_name }}&status={{ status }}"
+                   hx-target="#main-table"
+                   hx-push-url="true">
+                    {{ p }}
+                </a>
+            </li>
+            {% endfor %}
+
+            {% if page < total_pages %}
+            <li>
+                <a href="/_admin/cron-jobs?page={{ page + 1 }}&job_name={{ job_name }}&status={{ status }}"
+                   hx-get="/_admin/cron-jobs?page={{ page + 1 }}&job_name={{ job_name }}&status={{ status }}"
+                   hx-target="#main-table"
+                   hx-push-url="true">
+                    <span uk-pagination-next></span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}

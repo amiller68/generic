@@ -1,0 +1,72 @@
+{% extends "layouts/admin.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold">Dashboard</h1>
+        <p class="text-muted-foreground">System overview and health status</p>
+    </div>
+
+    <!-- Health Status (HTMX auto-refresh) -->
+    <div id="health-status"
+         hx-get="/_admin/partials/health"
+         hx-trigger="load, every 30s"
+         hx-swap="innerHTML">
+        <div class="uk-card uk-card-default uk-card-body">
+            <p class="text-muted-foreground">Loading health status...</p>
+        </div>
+    </div>
+
+    <!-- System Stats -->
+    <div class="uk-card uk-card-default uk-card-body">
+        <h3 class="text-lg font-semibold mb-4">System Statistics</h3>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="p-4 bg-muted rounded-lg">
+                <p class="text-sm text-muted-foreground">Total Users</p>
+                <p class="text-3xl font-bold text-primary">{{ stats.user_count }}</p>
+            </div>
+            <div class="p-4 bg-muted rounded-lg">
+                <p class="text-sm text-muted-foreground">Pending Approval</p>
+                <p class="text-3xl font-bold text-primary">{{ stats.pending_count }}</p>
+            </div>
+            <div class="p-4 bg-muted rounded-lg">
+                <p class="text-sm text-muted-foreground">Total Widgets</p>
+                <p class="text-3xl font-bold text-primary">{{ stats.widget_count }}</p>
+            </div>
+            <div class="p-4 bg-muted rounded-lg">
+                <p class="text-sm text-muted-foreground">Active Widgets</p>
+                <p class="text-3xl font-bold text-primary">{{ stats.active_widget_count }}</p>
+            </div>
+            <div class="p-4 bg-muted rounded-lg">
+                <p class="text-sm text-muted-foreground">Cron Job Runs</p>
+                <p class="text-3xl font-bold text-primary">{{ stats.cron_count }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="uk-card uk-card-default uk-card-body">
+        <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+        <div class="flex gap-2 flex-wrap">
+            <a href="/_admin/users" class="uk-button uk-button-default">
+                <uk-icon icon="users" class="mr-1 w-4 h-4"></uk-icon>
+                Manage Users
+            </a>
+            <a href="/_admin/widgets" class="uk-button uk-button-default">
+                <uk-icon icon="box" class="mr-1 w-4 h-4"></uk-icon>
+                Manage Widgets
+            </a>
+            <a href="/_admin/widgets/new" class="uk-button uk-button-primary">
+                <uk-icon icon="plus" class="mr-1 w-4 h-4"></uk-icon>
+                New Widget
+            </a>
+            <a href="/_admin/cron-jobs" class="uk-button uk-button-default">
+                <uk-icon icon="clock" class="mr-1 w-4 h-4"></uk-icon>
+                View Cron Jobs
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

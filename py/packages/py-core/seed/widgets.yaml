@@ -1,0 +1,34 @@
+# Widget seed configuration.
+#
+# Example widgets for development and testing.
+
+widgets:
+  - name: "Homepage Banner"
+    description: "Main banner displayed on the homepage"
+    status: active
+    priority: 10
+    is_public: true
+
+  - name: "Dashboard Stats"
+    description: "Statistics widget for the user dashboard"
+    status: active
+    priority: 5
+    is_public: false
+
+  - name: "Newsletter Signup"
+    description: "Email capture form for newsletter"
+    status: draft
+    priority: 3
+    is_public: true
+
+  - name: "Social Media Feed"
+    description: "Displays latest social media posts"
+    status: draft
+    priority: 2
+    is_public: true
+
+  - name: "Legacy Footer"
+    description: "Old footer widget - to be removed"
+    status: archived
+    priority: 0
+    is_public: false

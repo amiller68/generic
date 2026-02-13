@@ -35,6 +35,9 @@ jobs:
               - 'py/**'
               - 'bin/kamal'
               - 'bin/iac'
+              - 'bin/config'
+              - '.env.project'
+              - '.env.vault'
               - 'config/deploy/py.yml'
               - '.github/workflows/cd.yml'
 

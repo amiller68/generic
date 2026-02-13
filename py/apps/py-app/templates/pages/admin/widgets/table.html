@@ -1,0 +1,72 @@
+<div class="uk-card uk-card-default">
+    <table class="uk-table uk-table-divider uk-table-hover uk-table-middle">
+        <thead>
+            <tr>
+                <th class="w-1/4">Name</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Public</th>
+                <th>Created</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="widgets-tbody" hx-ext="sse" sse-connect="/_events/widgets/admin">
+            {% for widget in widgets %}
+            {% include "pages/admin/widgets/row.html" %}
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center text-muted-foreground py-8">
+                    {% if search or status %}
+                    No widgets found matching your filters
+                    {% else %}
+                    No widgets found. <a href="/_admin/widgets/new" class="text-primary hover:underline">Create one</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="flex justify-center mt-4">
+    <nav>
+        <ul class="uk-pagination">
+            {% if page > 1 %}
+            <li>
+                <a href="/_admin/widgets?page={{ page - 1 }}&search={{ search }}&status={{ status }}"
+                   hx-get="/_admin/widgets?page={{ page - 1 }}&search={{ search }}&status={{ status }}"
+                   hx-target="#widgets-table"
+                   hx-push-url="true">
+                    <span uk-pagination-previous></span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+            <li {% if p == page %}class="uk-active"{% endif %}>
+                <a href="/_admin/widgets?page={{ p }}&search={{ search }}&status={{ status }}"
+                   hx-get="/_admin/widgets?page={{ p }}&search={{ search }}&status={{ status }}"
+                   hx-target="#widgets-table"
+                   hx-push-url="true">
+                    {{ p }}
+                </a>
+            </li>
+            {% endfor %}
+
+            {% if page < total_pages %}
+            <li>
+                <a href="/_admin/widgets?page={{ page + 1 }}&search={{ search }}&status={{ status }}"
+                   hx-get="/_admin/widgets?page={{ page + 1 }}&search={{ search }}&status={{ status }}"
+                   hx-target="#widgets-table"
+                   hx-push-url="true">
+                    <span uk-pagination-next></span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
