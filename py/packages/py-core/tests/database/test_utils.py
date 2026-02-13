@@ -87,14 +87,16 @@ class TestUtcnow:
         result = utcnow()
         assert isinstance(result, datetime)
 
-    def test_has_timezone(self) -> None:
-        """utcnow returns timezone-aware datetime."""
+    def test_is_naive(self) -> None:
+        """utcnow returns naive datetime for TIMESTAMP WITHOUT TIME ZONE."""
         result = utcnow()
-        assert result.tzinfo is not None
+        assert result.tzinfo is None
 
-    def test_is_utc(self) -> None:
-        """utcnow returns UTC timezone."""
-        from datetime import timezone
+    def test_is_utc_based(self) -> None:
+        """utcnow returns current UTC time (but naive for DB storage)."""
+        from datetime import datetime, timezone
 
         result = utcnow()
-        assert result.tzinfo == timezone.utc
+        utc_now = datetime.now(timezone.utc).replace(tzinfo=None)
+        # Should be within 1 second of UTC now
+        assert abs((result - utc_now).total_seconds()) < 1

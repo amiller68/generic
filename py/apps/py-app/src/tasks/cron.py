@@ -13,7 +13,6 @@ Usage:
 
 import inspect
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any, Callable
 
 from redis.asyncio import Redis
@@ -24,7 +23,6 @@ from taskiq import TaskiqDepends
 from py_core.database.models.cron_job_run import CronJobRun, CronJobRunStatus
 from py_core.database.utils import utcnow
 from src.tasks.deps import get_db_session, get_redis
-
 
 _cron_registry: dict[str, "CronConfig"] = {}
 

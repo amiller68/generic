@@ -3,7 +3,6 @@ from enum import Enum
 
 from pydantic import BaseModel
 from sqlalchemy import Boolean, func
-from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column
@@ -43,12 +42,8 @@ class User(Base):
     approved: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # timestamps
-    created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), default=utcnow
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), default=utcnow, onupdate=utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(default=utcnow, onupdate=utcnow)
 
     def model(self) -> UserModel:
         return UserModel(

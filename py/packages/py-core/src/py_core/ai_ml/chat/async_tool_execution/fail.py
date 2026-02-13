@@ -53,8 +53,8 @@ async def fail_async_tool_execution(
         Result indicating whether the execution was found and updated
     """
     stmt = (
-        update(AsyncToolExecution)
-        .where(AsyncToolExecution.id == params.execution_id)
+        update(AsyncToolExecution).where(AsyncToolExecution.id == params.execution_id)
+        # Note: Using .value for Core update() - TypeDecorator may not bind automatically
         .values(
             status=AsyncToolExecutionStatus.FAILED.value,
             error_type=params.error_type.value,

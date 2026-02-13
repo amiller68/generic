@@ -14,7 +14,13 @@ from py_core.observability import Logger
 
 from src.agents import get_admin_chat_agent_spec
 from src.tasks import broker
-from src.tasks.deps import get_db_session, get_event_publisher, get_logger, get_redis
+from src.tasks.deps import (
+    get_db_session,
+    get_event_publisher,
+    get_logger,
+    get_redis,
+    get_session_factory,
+)
 
 
 @broker.task
@@ -22,6 +28,7 @@ async def complete_thread_task(
     user_id: str,
     completion_id: str,
     db: AsyncSession = TaskiqDepends(get_db_session),
+    get_session=TaskiqDepends(get_session_factory),
     logger: Logger = TaskiqDepends(get_logger),
     events: EventPublisher = TaskiqDepends(get_event_publisher),
     redis: Redis = TaskiqDepends(get_redis),
@@ -42,6 +49,7 @@ async def complete_thread_task(
     config = EngineConfig(agent_spec=get_admin_chat_agent_spec())
     ctx = EngineContext(
         db=db,
+        get_session=get_session,
         logger=logger,
         events=events,
         redis=redis,

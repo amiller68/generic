@@ -34,14 +34,14 @@ class MyModel(Base):
     status: Mapped[MyStatus] = mapped_column(StringEnum(MyStatus), default=MyStatus.PENDING)
 ```
 
-**Important**: With StringEnum, use enums directly in queries - no `.value` needed:
+**Important**: StringEnum usage depends on ORM vs Core:
 ```python
-# Correct
+# ORM operations - use enum directly (StringEnum handles conversion)
 model.status = MyStatus.PENDING
 query.filter(Model.status == MyStatus.ACTIVE)
 
-# Wrong - don't use .value
-model.status = MyStatus.PENDING.value  # NO
+# Core update/insert - use .value (TypeDecorator doesn't auto-bind)
+update(Model).where(Model.status == MyStatus.DRAFT.value).values(status=MyStatus.ACTIVE.value)
 ```
 
 ### uuid7 for IDs

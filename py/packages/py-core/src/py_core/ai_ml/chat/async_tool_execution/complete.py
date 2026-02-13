@@ -51,6 +51,7 @@ async def complete_async_tool_execution(
     Returns:
         Result indicating whether the execution was found and updated
     """
+    # Note: Using .value for Core update() - TypeDecorator may not bind automatically
     stmt = (
         update(AsyncToolExecution)
         .where(AsyncToolExecution.id == params.execution_id)
@@ -64,7 +65,7 @@ async def complete_async_tool_execution(
     updated = (getattr(result, "rowcount", 0) or 0) > 0
 
     if updated:
-        ctx.logger.debug(f"Completed async tool execution: {params.execution_id}")
+        ctx.logger.info(f"Completed async tool execution: {params.execution_id}")
     else:
         ctx.logger.warn(f"No async tool execution found: {params.execution_id}")
 

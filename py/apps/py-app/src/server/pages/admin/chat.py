@@ -1,8 +1,11 @@
 """Admin chat pages - admin-only AI assistant."""
 
+import json
+
 from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 
@@ -22,6 +25,10 @@ from py_core.ai_ml.chat import (
     request_cancel,
     CancelParams,
     CancelContext,
+)
+from py_core.database.models.async_tool_execution import (
+    AsyncToolExecution,
+    AsyncToolExecutionStatus,
 )
 from py_core.ai_ml.chat.exceptions import ThreadNotFound
 from py_core.ai_ml.types import TextPart
@@ -106,12 +113,43 @@ async def view_thread(
     except ThreadNotFound:
         raise HTTPException(status_code=404, detail="Thread not found")
 
+    # Fetch async tool executions for this thread (keyed by id for template lookup)
+    result = await db.execute(
+        select(AsyncToolExecution).where(AsyncToolExecution.thread_id == thread_id)
+    )
+    async_tools = {str(t.id): t for t in result.scalars().all()}
+
+    # Parse tool result JSON strings for template access
+    # (ToolResultPart.result is a JSON string, not a dict)
+    for message in thread.messages:
+        for part in message.parts:
+            # Handle both dict and Pydantic model parts
+            if isinstance(part, dict):
+                result = part.get("result")
+                if isinstance(result, str):
+                    try:
+                        part["_parsed_result"] = json.loads(result)
+                    except json.JSONDecodeError:
+                        part["_parsed_result"] = {}
+                else:
+                    part["_parsed_result"] = None
+            elif hasattr(part, "result") and isinstance(part.result, str):
+                try:
+                    part._parsed_result = json.loads(part.result)
+                except json.JSONDecodeError:
+                    part._parsed_result = {}
+            else:
+                # For Pydantic models without result field
+                if hasattr(part, "__dict__"):
+                    part._parsed_result = None
+
     return templates.TemplateResponse(
         "pages/admin/chat/thread.html",
         {
             "request": request,
             "user": user,
             "thread": thread,
+            "async_tools": async_tools,
             "completion_id": completion_id,
         },
     )
@@ -154,7 +192,6 @@ async def debug_cancel(
     log: Logger = Depends(logger),
 ) -> JSONResponse:
     """Debug endpoint to trace cancel flow."""
-    from sqlalchemy import select
     from py_core.database.models.completion import Completion, CompletionStatus
     from py_core.database.models.thread import Thread
     from py_core.ai_ml.chat.engine import get_cancel_key
@@ -243,7 +280,6 @@ async def completion_status(
     db: AsyncSession = Depends(async_db),
 ) -> JSONResponse:
     """Check completion status for polling fallback."""
-    from sqlalchemy import select
     from py_core.database.models.completion import Completion
 
     result = await db.execute(select(Completion).where(Completion.id == completion_id))
@@ -253,6 +289,36 @@ async def completion_status(
         return JSONResponse({"status": "not_found"})
 
     return JSONResponse({"status": completion.status})
+
+
+@router.get("/{thread_id}/async-tools")
+async def async_tools_status(
+    request: Request,
+    thread_id: str,
+    user: User = Depends(require_admin_user),
+    db: AsyncSession = Depends(async_db),
+) -> JSONResponse:
+    """Check for pending async tool executions."""
+
+    result = await db.execute(
+        select(AsyncToolExecution)
+        .where(
+            AsyncToolExecution.thread_id == thread_id,
+            AsyncToolExecution.status == AsyncToolExecutionStatus.PENDING,
+        )
+        .order_by(AsyncToolExecution.created_at.desc())
+    )
+    pending_tools = result.scalars().all()
+
+    return JSONResponse(
+        {
+            "pending_count": len(pending_tools),
+            "pending": [
+                {"id": t.id, "name": t.name, "created_at": t.created_at.isoformat()}
+                for t in pending_tools
+            ],
+        }
+    )
 
 
 @router.post("/{thread_id}/cancel")

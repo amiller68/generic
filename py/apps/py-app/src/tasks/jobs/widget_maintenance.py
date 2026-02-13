@@ -29,6 +29,7 @@ async def archive_stale_widgets(
     """
     cutoff = utcnow() - timedelta(days=30)
 
+    # Note: Using .value for Core update() - TypeDecorator may not bind automatically
     result = await db.execute(
         update(Widget)
         .where(Widget.status == WidgetStatus.DRAFT.value)

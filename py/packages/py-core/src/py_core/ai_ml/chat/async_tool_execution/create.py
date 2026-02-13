@@ -59,7 +59,7 @@ async def create_async_tool_execution(
         timeout_seconds=params.timeout_seconds,
         ref_type=params.ref_type,
         ref_id=params.ref_id,
-        status=AsyncToolExecutionStatus.PENDING.value,
+        status=AsyncToolExecutionStatus.PENDING,  # ORM assignment - StringEnum handles conversion
     )
     ctx.db.add(execution)
     await ctx.db.flush()

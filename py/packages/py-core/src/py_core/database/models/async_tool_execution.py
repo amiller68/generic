@@ -21,7 +21,7 @@ from enum import Enum
 from typing import Any
 
 from sqlalchemy import ForeignKey, Integer, Text
-from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..client import Base
@@ -108,9 +108,5 @@ class AsyncToolExecution(Base):
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), default=utcnow
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=True
-    )
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(nullable=True)

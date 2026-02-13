@@ -26,16 +26,18 @@ class SystemStatsPayload(BaseModel):
 @tool
 async def get_system_stats(ctx: RunContext[AgentDeps]) -> ToolResultBase:
     """Get current system statistics."""
-    db = ctx.deps.db
-
-    total_users = (await db.execute(select(func.count(User.id)))).scalar() or 0
-    approved_users = (
-        await db.execute(select(func.count(User.id)).where(User.approved.is_(True)))
-    ).scalar() or 0
-    total_widgets = (await db.execute(select(func.count(Widget.id)))).scalar() or 0
-    active_widgets = (
-        await db.execute(select(func.count(Widget.id)).where(Widget.status == "active"))
-    ).scalar() or 0
+    # Use isolated session to avoid conflicts with parallel tool calls
+    async with ctx.deps.get_session() as db:
+        total_users = (await db.execute(select(func.count(User.id)))).scalar() or 0
+        approved_users = (
+            await db.execute(select(func.count(User.id)).where(User.approved.is_(True)))
+        ).scalar() or 0
+        total_widgets = (await db.execute(select(func.count(Widget.id)))).scalar() or 0
+        active_widgets = (
+            await db.execute(
+                select(func.count(Widget.id)).where(Widget.status == "active")
+            )
+        ).scalar() or 0
 
     payload = SystemStatsPayload(
         total_users=total_users,

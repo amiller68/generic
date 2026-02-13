@@ -46,6 +46,18 @@ async def get_db_session(
         yield session
 
 
+def get_session_factory(
+    request: Request = TaskiqDepends(),
+):
+    """
+    Get a session factory for creating isolated database sessions.
+
+    Use this when you need multiple concurrent sessions (e.g., parallel tool calls).
+    Returns the database's session() context manager.
+    """
+    return request.app.state.app_state.database.session
+
+
 async def get_logger(request: Request = TaskiqDepends()) -> Logger:
     """Get logger from FastAPI app state."""
     return request.app.state.app_state.logger
@@ -70,6 +82,7 @@ from taskiq import Context  # noqa: E402
 
 __all__ = [
     "get_db_session",
+    "get_session_factory",
     "get_logger",
     "get_redis",
     "get_event_publisher",

@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any
 
 from sqlalchemy import Integer, Text
-from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..client import Base
@@ -25,15 +25,9 @@ class CronJobRun(Base):
     status: Mapped[CronJobRunStatus] = mapped_column(
         StringEnum(CronJobRunStatus), default=CronJobRunStatus.RUNNING
     )
-    started_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=True
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=True
-    )
+    started_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     result: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), default=utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)

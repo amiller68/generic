@@ -101,7 +101,7 @@ class Completion(Base):
     status: Mapped[str] = mapped_column(
         CompletionStatusType,
         nullable=False,
-        default=CompletionStatus.PENDING.value,
+        default=CompletionStatus.PENDING,
     )
 
     # Input (snapshot at request time)

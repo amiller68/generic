@@ -70,22 +70,24 @@ async def run_analysis(
             content_parts=[TextPart(content="Error: missing thread context")],
         )
 
-    exec_result = await create_async_tool_execution(
-        params=CreateParams(
-            thread_id=ctx.deps.thread_id,
-            completion_id=ctx.deps.completion_id,
-            name="run_analysis",
-            timeout_seconds=300,  # 5 min timeout
-            ref_type=AsyncToolRefType.ANALYSIS.value,
-        ),
-        ctx=CreateContext(
-            db=ctx.deps.db,
-            logger=ctx.deps.logger,
-        ),
-    )
+    # Use isolated session to avoid conflicts with parallel tool calls
+    async with ctx.deps.get_session() as db:
+        exec_result = await create_async_tool_execution(
+            params=CreateParams(
+                thread_id=ctx.deps.thread_id,
+                completion_id=ctx.deps.completion_id,
+                name="run_analysis",
+                timeout_seconds=300,  # 5 min timeout
+                ref_type=AsyncToolRefType.ANALYSIS.value,
+            ),
+            ctx=CreateContext(
+                db=db,
+                logger=ctx.deps.logger,
+            ),
+        )
 
-    # Commit before dispatching task
-    await ctx.deps.db.commit()
+        # Commit before dispatching task
+        await db.commit()
 
     # Dispatch background task with execution_id label
     await run_analysis_task.kicker().with_labels(

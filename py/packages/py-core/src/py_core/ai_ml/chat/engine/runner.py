@@ -13,6 +13,7 @@ Handles the complete lifecycle:
 import json
 import time
 from dataclasses import dataclass, field
+from typing import Any
 
 from pydantic_ai.messages import (
     PartDeltaEvent,
@@ -75,6 +76,7 @@ class EngineContext:
     """Runtime dependencies for the engine."""
 
     db: AsyncSession
+    get_session: Any  # Callable[[], AbstractAsyncContextManager[AsyncSession]]
     logger: Logger
     events: EventPublisher
     redis: Redis
@@ -244,6 +246,7 @@ class ChatEngine:
         agent = build_agent(self.config.agent_spec, config)
         deps = AgentDeps(
             db=self.ctx.db,
+            get_session=self.ctx.get_session,
             logger=self.ctx.logger,
             user_id=self.ctx.user_id,
             thread_id=self._completion.thread_id,
