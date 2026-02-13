@@ -47,27 +47,21 @@ Even in a hybrid setup, some pages are better server-rendered:
 
 ### 1. Configure Vite Output
 
-In `ts/apps/web/vite.config.ts`:
+In `packages/ts-web/vite.config.ts`:
 
 ```typescript
 export default defineConfig({
   build: {
-    outDir: '../../py/apps/py-app/static/app',
+    outDir: '../../apps/py-platform/static/app',
     emptyOutDir: true,
   },
-});
-```
-
-### 2. Configure API Proxy (Development)
-
-For local development, proxy API requests to Python:
-
-```typescript
-// vite.config.ts
-export default defineConfig({
   server: {
     proxy: {
       '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/_status': {
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
@@ -76,7 +70,7 @@ export default defineConfig({
 });
 ```
 
-### 3. Serve SPA from Python
+### 2. Serve SPA from Python
 
 Add a catch-all route in FastAPI:
 
@@ -237,69 +231,123 @@ async def stream_thread(id: str):
 
 ## Build Pipeline
 
+### Unified Turbo Workspace
+
+The hybrid stack uses a single turbo workspace that orchestrates both Python and TypeScript:
+
+```
+app/
+├── turbo.json           # Orchestrates all packages
+├── package.json         # Root scripts: dev, build, test
+├── pyproject.toml       # Python workspace config
+├── pnpm-workspace.yaml  # Includes apps/* and packages/*
+├── apps/
+│   └── py-platform/     # FastAPI app (@app/py-platform)
+└── packages/
+    ├── py-core/         # Python library (@app/py-core)
+    ├── py-database/     # Python database (@app/py-database)
+    ├── ts-web/          # Vite SPA (@app/ts-web)
+    └── ts-core/         # TypeScript types (@app/ts-core)
+```
+
 ### Development
 
-Run both servers:
+Single command runs everything:
 
 ```bash
-# Terminal 1: Python
-cd py && make dev
-
-# Terminal 2: TypeScript with proxy
-cd ts && pnpm dev --filter=web
+pnpm dev
 ```
 
-Or use tmux (from root):
+This runs:
+- `setup` tasks first (database migrations, etc.)
+- Python API server (`py-platform`)
+- Python worker and scheduler
+- TypeScript dev server (`ts-web`)
 
-```bash
-make dev
+Turbo handles the dependency graph - TypeScript packages build before the SPA starts, setup runs before dev servers.
+
+### turbo.json Configuration
+
+```json
+{
+  "tasks": {
+    "dev": {
+      "dependsOn": ["^setup"],
+      "cache": false,
+      "persistent": true
+    },
+    "dev#@app/ts-web": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "../py-platform/static/app/**"]
+    }
+  }
+}
 ```
+
+Key patterns:
+- `^setup` ensures database/services ready before dev
+- `persistent: true` for long-running dev servers
+- Build outputs TypeScript to Python's static directory
 
 ### Production Build
 
-1. Build TypeScript to Python's static directory
-2. Build Python Docker image (includes SPA)
-3. Deploy single container
+Single Dockerfile builds both stacks:
 
 ```dockerfile
-# Dockerfile
 FROM node:20 AS frontend
-WORKDIR /app/ts
-COPY ts/ .
-RUN pnpm install && pnpm build --filter=web
+WORKDIR /app
+COPY . .
+RUN pnpm install && pnpm build
 
 FROM python:3.12
 WORKDIR /app
-COPY --from=frontend /app/py/apps/py-app/static/app ./static/app
-COPY py/ .
-CMD ["uvicorn", "src.main:app"]
+COPY --from=frontend /app .
+CMD ["uvicorn", "apps.py-platform.src.main:app"]
 ```
 
 ## File Structure
 
 ```
-py/
-├── apps/py-app/
-│   ├── src/
-│   │   ├── routes/
-│   │   │   ├── _status.py    # /_status/* health checks
-│   │   │   ├── _admin.py     # /_admin/* server-rendered
-│   │   │   └── api/
-│   │   │       └── v0/       # /api/v0/* JSON endpoints
-│   │   └── main.py           # FastAPI app + SPA serving
-│   ├── templates/
-│   │   └── admin/            # Jinja2 templates for admin
-│   └── static/
-│       └── app/              # Built SPA (from Vite)
-
-ts/
-├── apps/web/
-│   ├── src/
-│   │   ├── api/              # API client
-│   │   ├── components/       # React components
-│   │   └── App.tsx
-│   └── vite.config.ts        # Output to py-app/static/app
+app/
+├── turbo.json
+├── package.json
+├── pyproject.toml
+├── pnpm-workspace.yaml
+├── apps/
+│   └── py-platform/              # FastAPI application
+│       ├── src/
+│       │   ├── routes/
+│       │   │   ├── _status.py    # /_status/* health checks
+│       │   │   ├── _admin.py     # /_admin/* server-rendered
+│       │   │   └── api/
+│       │   │       └── v0/       # /api/v0/* JSON endpoints
+│       │   └── main.py           # FastAPI app + SPA serving
+│       ├── templates/
+│       │   └── admin/            # Jinja2 templates for admin
+│       └── static/
+│           └── app/              # Built SPA (from ts-web)
+└── packages/
+    ├── py-core/                  # Python shared library
+    ├── py-database/              # Database models, migrations
+    ├── ts-web/                   # Vite SPA (React)
+    │   ├── src/
+    │   │   ├── api/              # API client
+    │   │   ├── components/       # React components
+    │   │   └── App.tsx
+    │   └── vite.config.ts        # Outputs to py-platform/static/app
+    └── ts-core/                  # Shared TypeScript types
 ```
+
+### Package Naming Convention
+
+| Prefix | Language | Example |
+|--------|----------|---------|
+| `py-*` | Python | `@app/py-core`, `@app/py-database` |
+| `ts-*` | TypeScript | `@app/ts-web`, `@app/ts-core` |
 
 ### Route Prefix Conventions
 
@@ -314,6 +362,6 @@ The underscore prefix (`_status`, `_admin`) signals internal/infrastructure rout
 
 ## Related Documentation
 
-- `docs/development/MIXING_LANGUAGES.md` - When to use HTMX vs SPA
+- [Turbo Monorepo](turbo-monorepo.md) - Build orchestration details
 - [TypeScript Packages](typescript-packages.md) - Shared type patterns
-- [Turbo Monorepo](turbo-monorepo.md) - Build orchestration
+- [Python Packages](python-packages.md) - py-core library patterns
