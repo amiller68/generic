@@ -5,6 +5,7 @@ from starlette import status
 from contextlib import asynccontextmanager
 from pathlib import Path
 import asyncio
+import os
 from sse_starlette.sse import EventSourceResponse
 from starlette.background import BackgroundTask
 from watchfiles import awatch
@@ -141,7 +142,8 @@ def create_app(app_state: AppState) -> FastAPI:
         app.include_router(dev_router)
 
     # Mount static files
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+    static_dir = os.getenv("STATIC_DIR", "static")
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
     # Include the HTML router
     app.include_router(pages_router)
