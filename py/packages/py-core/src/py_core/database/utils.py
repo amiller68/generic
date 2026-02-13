@@ -8,7 +8,8 @@ from uuid_utils import uuid7
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    """Return current UTC time as naive datetime (for TIMESTAMP WITHOUT TIME ZONE)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def uuid7_str() -> str:
