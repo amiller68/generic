@@ -76,7 +76,9 @@ async def _record_run_complete(
         completed_at = utcnow()
         run.completed_at = completed_at
         if run.started_at:
-            run.duration_ms = int((completed_at - run.started_at).total_seconds() * 1000)
+            run.duration_ms = int(
+                (completed_at - run.started_at).total_seconds() * 1000
+            )
         run.result = result
         run.error = error
         await db.commit()

@@ -1,0 +1,29 @@
+LOCUS       backbone                 159 bp    DNA     circular UNK 01-JAN-1980
+DEFINITION  Protocol construct.
+ACCESSION   JYQCn8CyVMMo4Q67
+VERSION     JYQCn8CyVMMo4Q67
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     source          1..159
+                     /organism="Escherichia coli"
+                     /strain="K-12"
+                     /mol_type="genomic DNA"
+     proto_meta      1..159
+                     /protocol_construct_id="con_JYQCn8CyVMMo4Q67GGFTua"
+     rep_origin      1..12
+                     /protocol_feature_id="ftr_MBMFMtsPQLMiMKuUBz3xzZ"
+                     /label="ori"
+     misc_feature    44..67
+                     /protocol_feature_id="ftr_Hg9QWT366uDqJNgaak64vX"
+                     /label="mcs"
+     CDS             99..128
+                     /protocol_feature_id="ftr_6H6Ldc5dJxZqYRLBQUoPWA"
+                     /label="amp"
+ORIGIN
+        1 atgcatgcat gcaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaagaattcg gatccaagct
+       61 tctgcagaaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaat gagtattcaa catttccgtg
+      121 tcgcccttaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaa
+//

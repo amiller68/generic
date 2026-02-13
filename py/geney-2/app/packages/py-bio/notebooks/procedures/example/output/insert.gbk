@@ -1,0 +1,15 @@
+LOCUS       insert                    48 bp    DNA              UNK 01-JAN-1980
+DEFINITION  description.
+ACCESSION   id
+VERSION     id
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     CDS             5..7
+                     /label="marker"
+                     /feature_id="019ab3b6-1999-7fb1-b371-00dde8f2bf33"
+ORIGIN
+        1 aaaaaattaa aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaagatc
+//

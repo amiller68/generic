@@ -1,0 +1,21 @@
+LOCUS       marker_plasmid           114 bp    DNA     circular UNK 01-JAN-1980
+DEFINITION  Protocol construct.
+ACCESSION   41L9hYqddBAkGMGK
+VERSION     41L9hYqddBAkGMGK
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     source          1..114
+                     /organism="Synthetic construct"
+                     /mol_type="other DNA"
+     proto_meta      1..114
+                     /protocol_construct_id="con_41L9hYqddBAkGMGK4LQRMo"
+     CDS             1..9
+                     /protocol_feature_id="ftr_2Et2rZhrcGm3EYtkyGi8AA"
+                     /label="gfp"
+ORIGIN
+        1 atggtgagca aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa gaattcaaaa aaaaaaaaaa
+       61 aaaaaaaaaa aaaaaaagga tccaaaaaaa aaaaaaaaaa aaaaaaaaaa aaaa
+//
