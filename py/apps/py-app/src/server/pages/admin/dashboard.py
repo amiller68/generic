@@ -4,7 +4,6 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from redis.asyncio import Redis
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,9 +13,9 @@ from py_core.database.models.cron_job_run import CronJobRun
 from py_core.observability import Logger
 
 from src.server.deps import async_db, logger, redis, require_admin_user
+from src.server.templates import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/", response_class=HTMLResponse)

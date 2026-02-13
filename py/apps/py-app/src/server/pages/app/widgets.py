@@ -6,7 +6,6 @@ Unlike the admin panel, users can only see and modify widgets they own.
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Form
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 
@@ -21,9 +20,9 @@ from py_core.observability import Logger
 
 from src.server.deps import async_db, logger, redis, require_logged_in_user
 from src.tasks.jobs.process_widget import process_widget_task
+from src.server.templates import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 WIDGETS_PER_PAGE = 10
 APP_LAYOUT = "layouts/app.html"

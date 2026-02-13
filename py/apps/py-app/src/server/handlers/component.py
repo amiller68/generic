@@ -1,10 +1,9 @@
 from fastapi import Request
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Any, Dict
 
-templates = Jinja2Templates(directory="templates")
+from src.server.templates import templates
 
 
 class ComponentResponseHandler:

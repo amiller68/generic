@@ -4,7 +4,6 @@ import json
 
 from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
@@ -37,9 +36,9 @@ from py_core.observability import Logger
 
 from src.server.deps import async_db, logger, redis, require_admin_user
 from src.tasks.jobs.complete_thread import complete_thread_task
+from src.server.templates import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 async def dispatch_completion(user_id: str, completion_id: str) -> None:
