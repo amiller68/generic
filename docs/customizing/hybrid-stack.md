@@ -47,24 +47,18 @@ Even in a hybrid setup, some pages are better server-rendered:
 
 ### 1. Configure Vite Output
 
-In `packages/ts-web/vite.config.ts`:
+In `apps/ts-app/vite.config.ts`:
 
 ```typescript
 export default defineConfig({
   build: {
-    outDir: '../../apps/py-platform/static/app',
+    outDir: '../py-app/static/app',
     emptyOutDir: true,
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-      '/_status': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
+      '/api': 'http://localhost:8000',
+      '/_status': 'http://localhost:8000',
     },
   },
 });
@@ -237,17 +231,16 @@ The hybrid stack uses a single turbo workspace that orchestrates both Python and
 
 ```
 app/
-├── turbo.json           # Orchestrates all packages
-├── package.json         # Root scripts: dev, build, test
-├── pyproject.toml       # Python workspace config
-├── pnpm-workspace.yaml  # Includes apps/* and packages/*
+├── turbo.json
+├── package.json
+├── pyproject.toml
+├── pnpm-workspace.yaml
 ├── apps/
-│   └── py-platform/     # FastAPI app (@app/py-platform)
+│   ├── py-app/          # FastAPI application
+│   └── ts-app/          # Vite SPA
 └── packages/
-    ├── py-core/         # Python library (@app/py-core)
-    ├── py-database/     # Python database (@app/py-database)
-    ├── ts-web/          # Vite SPA (@app/ts-web)
-    └── ts-core/         # TypeScript types (@app/ts-core)
+    ├── py-core/         # Shared Python library
+    └── ts-core/         # Shared TypeScript types
 ```
 
 ### Development
@@ -276,26 +269,15 @@ Turbo handles the dependency graph - TypeScript packages build before the SPA st
       "cache": false,
       "persistent": true
     },
-    "dev#@app/ts-web": {
-      "cache": false,
-      "persistent": true
-    },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "../py-platform/static/app/**"]
+      "outputs": ["dist/**", "../py-app/static/app/**"]
     }
   }
 }
 ```
 
-Key patterns:
-- `^setup` ensures database/services ready before dev
-- `persistent: true` for long-running dev servers
-- Build outputs TypeScript to Python's static directory
-
 ### Production Build
-
-Single Dockerfile builds both stacks:
 
 ```dockerfile
 FROM node:20 AS frontend
@@ -306,7 +288,7 @@ RUN pnpm install && pnpm build
 FROM python:3.12
 WORKDIR /app
 COPY --from=frontend /app .
-CMD ["uvicorn", "apps.py-platform.src.main:app"]
+CMD ["uvicorn", "apps.py-app.src.main:app"]
 ```
 
 ## File Structure
@@ -318,36 +300,25 @@ app/
 ├── pyproject.toml
 ├── pnpm-workspace.yaml
 ├── apps/
-│   └── py-platform/              # FastAPI application
+│   ├── py-app/                   # FastAPI application
+│   │   ├── src/
+│   │   │   ├── routes/
+│   │   │   │   ├── _status.py    # /_status/* health checks
+│   │   │   │   ├── _admin.py     # /_admin/* server-rendered
+│   │   │   │   └── api/v0/       # /api/v0/* JSON endpoints
+│   │   │   └── main.py
+│   │   ├── templates/admin/      # Jinja2 for admin pages
+│   │   └── static/app/           # Built SPA (from ts-app)
+│   └── ts-app/                   # Vite SPA (React)
 │       ├── src/
-│       │   ├── routes/
-│       │   │   ├── _status.py    # /_status/* health checks
-│       │   │   ├── _admin.py     # /_admin/* server-rendered
-│       │   │   └── api/
-│       │   │       └── v0/       # /api/v0/* JSON endpoints
-│       │   └── main.py           # FastAPI app + SPA serving
-│       ├── templates/
-│       │   └── admin/            # Jinja2 templates for admin
-│       └── static/
-│           └── app/              # Built SPA (from ts-web)
+│       │   ├── api/
+│       │   ├── components/
+│       │   └── App.tsx
+│       └── vite.config.ts        # Outputs to py-app/static/app
 └── packages/
-    ├── py-core/                  # Python shared library
-    ├── py-database/              # Database models, migrations
-    ├── ts-web/                   # Vite SPA (React)
-    │   ├── src/
-    │   │   ├── api/              # API client
-    │   │   ├── components/       # React components
-    │   │   └── App.tsx
-    │   └── vite.config.ts        # Outputs to py-platform/static/app
+    ├── py-core/                  # Shared Python (models, utils)
     └── ts-core/                  # Shared TypeScript types
 ```
-
-### Package Naming Convention
-
-| Prefix | Language | Example |
-|--------|----------|---------|
-| `py-*` | Python | `@app/py-core`, `@app/py-database` |
-| `ts-*` | TypeScript | `@app/ts-web`, `@app/ts-core` |
 
 ### Route Prefix Conventions
 
