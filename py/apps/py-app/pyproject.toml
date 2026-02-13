@@ -20,7 +20,7 @@ dependencies = [
     "setuptools",
     "watchfiles",
     "redis",
-    "taskiq",
+    "taskiq[reload]",
     "taskiq-redis",
     "taskiq-fastapi",
 ]
