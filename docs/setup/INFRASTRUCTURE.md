@@ -5,11 +5,12 @@ This guide explains how to deploy infrastructure using Terraform with 1Password 
 ## Overview
 
 The platform uses Terraform to provision:
-- **Container Registry** (Docker Hub repositories for your services)
 - **Digital Ocean Droplets** (VM servers for each stage)
 - **Cloudflare DNS** (Domain records pointing to your servers)
 - **SSH Keys** (Auto-generated for server access)
 - **Firewall Rules** (HTTP/HTTPS/SSH access)
+
+**Note**: Container registry setup is handled by Kamal during deployment.
 
 All managed via a single command: `make iac <stage> <command>`
 
@@ -26,75 +27,11 @@ The platform supports multiple stages (environments):
 
 ```
 Stages (in .env.project):
-├── container-registry   # Docker Hub repositories (shared across stages)
 ├── production          # Production servers and DNS
 └── staging             # Staging servers and DNS (optional)
 ```
 
 Each stage is deployed independently via `make iac <stage> <command>`.
-
-## Deployment Workflow
-
-Deploy stages in this order:
-
-1. **Container Registry** - Create Docker repositories first
-2. **Production/Staging** - Deploy servers and configure DNS
-
-## Container Registry Setup
-
-The container registry stage creates Docker Hub repositories for your services.
-
-### Step 1: Initialize Terraform
-
-```bash
-make iac container-registry init
-```
-
-This connects to Terraform Cloud workspace and downloads required providers.
-
-### Step 2: Review Plan
-
-```bash
-make iac container-registry plan
-```
-
-Expected resources:
-- Docker Hub repositories for each service in `SERVICES` (.env.project)
-- Example: `yourorg/generic-py`, `yourorg/generic-ts`
-
-### Step 3: Apply Configuration
-
-```bash
-make iac container-registry apply
-```
-
-Terraform will:
-1. Authenticate to Docker Hub using credentials from 1Password
-2. Create repositories (public or private based on `USE_PRIVATE_REPOS`)
-3. Configure repository descriptions
-4. Store state in Terraform Cloud
-
-Expected output:
-```
-Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
-
-Outputs:
-
-repository_urls = {
-  "py" = "yourorg/generic-py"
-  "ts" = "yourorg/generic-ts"
-}
-```
-
-### Step 4: Verify Repositories
-
-Check Docker Hub:
-```bash
-# List repositories
-docker search yourorg/generic
-```
-
-Or view in [Docker Hub UI](https://hub.docker.com/repositories).
 
 ## Production Setup
 
@@ -322,7 +259,6 @@ make iac production apply
 
 2. **Update infrastructure**:
    ```bash
-   make iac container-registry apply  # Create new repository
    make iac production apply          # Add DNS record
    ```
 
@@ -332,6 +268,11 @@ make iac production apply
    # Edit static.yml for your service
    ```
 
+4. **Deploy** (Kamal creates the registry repository automatically):
+   ```bash
+   make kamal static production deploy
+   ```
+
 ### Destroy Infrastructure
 
 **CAREFUL**: This deletes all infrastructure for the stage.
@@ -339,9 +280,6 @@ make iac production apply
 ```bash
 # Destroy production (asks for confirmation)
 make iac production destroy
-
-# Destroy container registry (asks for confirmation)
-make iac container-registry destroy
 ```
 
 To destroy without confirmation (CI/CD):
@@ -430,9 +368,8 @@ Running production infrastructure:
 
 **Other:**
 - Terraform Cloud: Free (up to 500 resources)
-- Docker Hub: Free (public repos) or $5/month (private repos)
 
-**Total minimum**: $6-15/month
+**Total minimum**: ~$6/month
 
 ## Security Recommendations
 
