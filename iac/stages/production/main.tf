@@ -13,6 +13,7 @@ module "common" {
   digitalocean = {
     droplet = {
       region = "nyc3"
+      size   = "s-2vcpu-4gb"
     }
   }
   cloudflare   = {
