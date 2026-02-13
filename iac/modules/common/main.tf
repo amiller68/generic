@@ -31,6 +31,7 @@ module "digitalocean_droplet" {
   name = "${var.project_name}-${var.environment}-${random_string.project_prefix.result}-droplet"
 
   region = var.digitalocean.droplet.region
+  size   = var.digitalocean.droplet.size
   tags   = ["${var.project_name}-${var.environment}"]
 
   # SSH configuration

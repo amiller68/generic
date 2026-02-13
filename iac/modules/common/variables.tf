@@ -29,6 +29,7 @@ variable "digitalocean" {
   type = object({
     droplet = object({
       region = string
+      size   = optional(string, "s-1vcpu-1gb")
     })
   })
 }

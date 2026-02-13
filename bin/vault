@@ -8,24 +8,57 @@ source "$PROJECT_ROOT/bin/config"
 # our default is just the development vault
 DEFAULT_STAGE="development"
 
+# Vault validation caching
+VAULT_CACHE_FILE="/tmp/.vault-cache-${PROJECT_NAME}"
+VAULT_CACHE_TTL="${VAULT_CACHE_TTL:-300}"  # 5 minutes default
+
+# Skip validation via environment variable for fast iteration
+SKIP_VAULT_VALIDATION="${SKIP_VAULT_VALIDATION:-false}"
+
+# Get vault list with TTL-based caching
+get_vault_list() {
+    local now=$(date +%s)
+    local cache_time=0
+
+    if [[ -f "$VAULT_CACHE_FILE" ]]; then
+        # macOS uses -f %m, Linux uses -c %Y
+        cache_time=$(stat -f %m "$VAULT_CACHE_FILE" 2>/dev/null || stat -c %Y "$VAULT_CACHE_FILE" 2>/dev/null || echo 0)
+    fi
+
+    if (( now - cache_time > VAULT_CACHE_TTL )); then
+        op vault list --format=json 2>/dev/null > "$VAULT_CACHE_FILE" || {
+            rm -f "$VAULT_CACHE_FILE"
+            echo "Error: Failed to list vaults from 1Password" >&2
+            return 1
+        }
+    fi
+
+    cat "$VAULT_CACHE_FILE"
+}
+
 # Validate that the vaults we expect exist in 1Password
 #  - We should have <project-name>-<stage> for every deployment described in ./iac/stages
 #  - We should have a <project-name>-development vault for storing the development environment
 #  - We should have out <cloud-provider> vault for storing the cloud provider environment
 validate_vaults() {
+    if [[ "$SKIP_VAULT_VALIDATION" == "true" ]]; then
+        return 0
+    fi
+
     local all_stages=$STAGES
     local all_valid=true
 
-    # TODO (amiller68): this is kinda messy, but it works for now
+    # Fetch vault list once
+    local vaults
+    vaults=$(get_vault_list) || return 1
+
     # validate the deployed stages -- make an exception for container-registry
-    #  though
     for stage in $all_stages; do
         if [[ "$stage" == "container-registry" ]]; then
             continue
         fi
         local vault_name="${PROJECT_NAME}-${stage}"
-        if ! op vault list --format=json 2>/dev/null | jq -e ".[] | select(.name ==
-\"$vault_name\")" > /dev/null 2>&1; then
+        if ! echo "$vaults" | jq -e ".[] | select(.name == \"$vault_name\")" > /dev/null 2>&1; then
             echo "Error: Vault '$vault_name' not found in 1Password" >&2
             all_valid=false
         fi
@@ -33,21 +66,25 @@ validate_vaults() {
 
     # validate the development stage
     local development_vault="${PROJECT_NAME}-development"
-    if ! op vault list --format=json 2>/dev/null | jq -e ".[] | select(.name ==
-\"$development_vault\")" > /dev/null 2>&1; then
+    if ! echo "$vaults" | jq -e ".[] | select(.name == \"$development_vault\")" > /dev/null 2>&1; then
         echo "Error: Vault '$development_vault' not found in 1Password" >&2
         all_valid=false
     fi
 
     # Validate cloud provider vault
     local cloud_provider_vault="${CLOUD_VAULT}"
-    if ! op vault list --format=json 2>/dev/null | jq -e ".[] | select(.name ==
-\"$cloud_provider_vault\")" > /dev/null 2>&1; then
+    if ! echo "$vaults" | jq -e ".[] | select(.name == \"$cloud_provider_vault\")" > /dev/null 2>&1; then
         echo "Error: Vault '$cloud_provider_vault' not found in 1Password" >&2
         all_valid=false
     fi
 
     [ "$all_valid" = true ]
+}
+
+# Clear the vault cache (useful after vault changes)
+clear_vault_cache() {
+    rm -f "$VAULT_CACHE_FILE"
+    echo "Vault cache cleared"
 }
 
 validate_vaults
@@ -173,12 +210,19 @@ help() {
     echo ""
     echo "Usage:"
     echo "  $0 read [--stage <stage>] <KEY>   - Read a specific value from vault"
-    echo "  $0 write [--stage <stage>] <KEY> <VALUE> - Write a specific value to vault"
+    echo "  $0 run [--stage <stage>] -- CMD   - Run command with vault env"
+    echo "  $0 validate                       - Validate vault access"
+    echo "  $0 clear-cache                    - Clear vault list cache"
+    echo ""
+    echo "Environment Variables:"
+    echo "  SKIP_VAULT_VALIDATION=true        - Skip vault validation for faster iteration"
+    echo "  VAULT_CACHE_TTL=300               - Cache TTL in seconds (default: 300)"
     echo ""
     echo "Examples:"
     echo "  $0 read HASHICORP_API_TOKEN"
     echo "  $0 read --stage production GOOGLE_O_AUTH_CLIENT_ID"
-    echo "  $0 --stage development -- python app.py"
+    echo "  $0 run --stage development -- python app.py"
+    echo "  SKIP_VAULT_VALIDATION=true $0 run -- make deploy"
 }
 
 # Check if script is being sourced or executed directly
@@ -194,6 +238,13 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         run)
             shift
             run_with_vault "$@"
+            ;;
+        validate)
+            # Force validation (ignore skip flag for explicit validate command)
+            SKIP_VAULT_VALIDATION=false validate_vaults && echo "All vaults validated successfully"
+            ;;
+        clear-cache)
+            clear_vault_cache
             ;;
         help|--help)
             help
