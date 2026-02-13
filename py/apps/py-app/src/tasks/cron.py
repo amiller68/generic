@@ -13,7 +13,7 @@ Usage:
 
 import inspect
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Callable
 
 from redis.asyncio import Redis
@@ -24,15 +24,6 @@ from taskiq import TaskiqDepends
 from py_core.database.models.cron_job_run import CronJobRun, CronJobRunStatus
 from py_core.database.utils import utcnow
 from src.tasks.deps import get_db_session, get_redis
-
-
-def _ensure_tz_aware(dt: datetime | None) -> datetime | None:
-    """Ensure datetime is timezone-aware (UTC)."""
-    if dt is None:
-        return None
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    return dt
 
 
 _cron_registry: dict[str, "CronConfig"] = {}
@@ -86,9 +77,8 @@ async def _record_run_complete(
         run.status = status
         completed_at = utcnow()
         run.completed_at = completed_at
-        started_at = _ensure_tz_aware(run.started_at)
-        if started_at:
-            run.duration_ms = int((completed_at - started_at).total_seconds() * 1000)
+        if run.started_at:
+            run.duration_ms = int((completed_at - run.started_at).total_seconds() * 1000)
         run.result = result
         run.error = error
         await db.commit()
