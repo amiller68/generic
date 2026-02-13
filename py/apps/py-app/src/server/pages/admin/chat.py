@@ -1,6 +1,6 @@
 """Admin chat pages - admin-only AI assistant."""
 
-from fastapi import APIRouter, Depends, Request, Form
+from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +23,7 @@ from py_core.ai_ml.chat import (
     CancelParams,
     CancelContext,
 )
+from py_core.ai_ml.chat.exceptions import ThreadNotFound
 from py_core.ai_ml.types import TextPart
 from py_core.database.models import User
 from py_core.observability import Logger
@@ -97,10 +98,13 @@ async def view_thread(
     log: Logger = Depends(logger),
 ) -> HTMLResponse:
     """View an existing thread."""
-    thread = await get_thread(
-        params=GetThreadParams(user_id=str(user.id), thread_id=thread_id),
-        ctx=GetThreadContext(db=db, logger=log),
-    )
+    try:
+        thread = await get_thread(
+            params=GetThreadParams(user_id=str(user.id), thread_id=thread_id),
+            ctx=GetThreadContext(db=db, logger=log),
+        )
+    except ThreadNotFound:
+        raise HTTPException(status_code=404, detail="Thread not found")
 
     return templates.TemplateResponse(
         "pages/admin/chat/thread.html",
