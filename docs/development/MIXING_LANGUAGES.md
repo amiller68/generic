@@ -41,40 +41,11 @@ Browser → Python (FastAPI)
         └── SPA loads → fetch('/api/v0/...') for data
 ```
 
-## Turbo for Cross-Language Builds
+## Build Tools
 
-When TypeScript is involved in the build pipeline:
+The repo provides native tooling for cross-language development:
 
-- Use **pnpm + Turbo** for dependency graph traversal across TypeScript packages
-- Python packages use **uv workspaces** - they don't need Turbo
-- The Dockerfile handles the multi-stage build: TypeScript first, then Python
-
-## Writing Bridge/Wrapper Libraries
-
-For shared types between Python and TypeScript:
-
-1. **Python defines the source of truth** - Pydantic models, API schemas
-2. **TypeScript mirrors the types** - A `ts-core` package with matching interfaces
-3. **OpenAPI as the contract** - FastAPI auto-generates OpenAPI specs that TypeScript can consume
-
-## Git Worktrees for Parallel Development
-
-Use git worktrees to run multiple development environments simultaneously:
-
-```bash
-# Create a new worktree for a feature branch
-make worktree-create BRANCH=feature/my-feature
-
-# Each worktree gets its own:
-# - Port (8000-8009 range)
-# - Database (generic_feature_my_feature)
-# - Redis DB (0-9)
-
-# List active worktrees
-make worktree-list
-
-# Show port assignment for current branch
-make ports
-```
-
-This enables running multiple Claude Code instances or dev servers in parallel without port conflicts.
+- **pnpm + Turbo** manages TypeScript packages and dependency graph traversal
+- **uv workspaces** manages Python packages
+- **Makefile** at root orchestrates both with `make dev`, `make build`, etc.
+- **Dockerfile** handles multi-stage builds (TypeScript assets first, then Python)
