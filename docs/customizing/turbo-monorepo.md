@@ -1,6 +1,6 @@
 # Turbo Monorepo
 
-The TypeScript stack uses [Turborepo](https://turbo.build/) to orchestrate builds across packages and apps.
+[Turborepo](https://turbo.build/) orchestrates builds and dev servers across both Python and TypeScript packages.
 
 ## How Turbo Works
 
@@ -155,11 +155,80 @@ pnpm clean
 pnpm turbo run build --force
 ```
 
-## Integration with Python
+## Running Multiple Services
 
-Turbo handles TypeScript builds. Python uses uv workspaces separately.
+Turbo's killer feature: run all your services with one command in one terminal.
 
-For hybrid setups where TypeScript builds output to Python's static directory:
-- Configure Vite to output to `py/apps/py-app/static/app/`
-- Python serves the built SPA
-- See [Hybrid Stack](hybrid-stack.md) for details
+```bash
+pnpm dev
+```
+
+This starts everything in parallel:
+- Python API server
+- Python background worker
+- Python scheduler
+- TypeScript dev server
+- Any other persistent tasks
+
+No tmux, no multiple terminal tabs, no process managers. Just one command.
+
+### How It Works
+
+In `turbo.json`, tasks marked `persistent: true` run as long-lived processes:
+
+```json
+{
+  "tasks": {
+    "dev": {
+      "dependsOn": ["^setup"],
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
+```
+
+Each package defines its own `dev` script:
+
+```json
+// apps/py-app/package.json
+{
+  "scripts": {
+    "dev": "uv run uvicorn src.main:app --reload"
+  }
+}
+
+// apps/ts-app/package.json
+{
+  "scripts": {
+    "dev": "vite"
+  }
+}
+```
+
+Turbo runs them all, handles dependencies (`^setup` runs first), and shows unified output.
+
+### Running Specific Services
+
+```bash
+# Just the API
+pnpm turbo run dev --filter=py-app
+
+# Just the frontend
+pnpm turbo run dev --filter=ts-app
+
+# API + worker
+pnpm turbo run dev --filter=py-app --filter=py-worker
+```
+
+### Why Not tmux?
+
+| | Turbo | tmux |
+|---|-------|------|
+| Setup | `pnpm dev` | Scripts, keybindings, configs |
+| Learning curve | None | Moderate |
+| Dependency ordering | Automatic | Manual |
+| Output | Unified, labeled | Split panes |
+| Stopping | Ctrl+C | Kill each pane |
+
+Turbo is the right tool for dev servers. Save tmux for SSH sessions.
