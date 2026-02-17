@@ -2,6 +2,8 @@
 
 Coding patterns and conventions for both Python and TypeScript workspaces.
 
+**Detailed Python patterns:** See `py/docs/PYTHON_LIBRARY_PATTERNS.md` for comprehensive coverage of Context DI, Params dataclasses, module organization, SQLAlchemy patterns (StringEnum, uuid7), and background tasks.
+
 ## Error Handling
 
 ### Python (FastAPI)

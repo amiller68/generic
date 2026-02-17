@@ -18,6 +18,7 @@ This directory contains documentation for the Python components of the generic t
 | [DATABASE.md](./DATABASE.md) | Database operations, migrations, local setup | Working with the database |
 | [PACKAGE_SETUP.md](./PACKAGE_SETUP.md) | Package scripts and tooling | Creating or modifying packages |
 | [PYTHON_LIBRARY_PATTERNS.md](./PYTHON_LIBRARY_PATTERNS.md) | Python architecture patterns | Writing Python code |
+| [TASKS.md](./TASKS.md) | Background jobs and scheduled tasks | Working with TaskIQ |
 | [SUCCESS_CRITERIA.md](./SUCCESS_CRITERIA.md) | CI requirements and checks | Before creating a PR |
 
 ---
@@ -43,6 +44,13 @@ Architecture patterns for Python code:
 - **Dependency Injection**: Use `Context` dataclasses, never globals
 - **Params for Extensibility**: Design params with defaults for backward compatibility
 - **Module Organization**: Standard structure with `_context.py`, `create.py`, `read.py`
+
+### [TASKS.md](./TASKS.md)
+Background jobs and scheduled tasks:
+- TaskIQ broker and worker setup
+- `@cron` decorator with distributed locking
+- Task dependencies (`TaskiqDepends`)
+- Run tracking and observability
 
 ### [SUCCESS_CRITERIA.md](./SUCCESS_CRITERIA.md)
 What "done" means:

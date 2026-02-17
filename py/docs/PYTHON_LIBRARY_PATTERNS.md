@@ -453,3 +453,77 @@ async def operation_name(
 - [ ] `None` means "use system default" (not "disabled")
 - [ ] Related params are grouped with comments
 - [ ] Docstring explains each field's purpose
+
+---
+
+## SQLAlchemy Patterns
+
+### StringEnum for Type-Safe Enums
+
+Use `StringEnum` for storing Python enums as PostgreSQL strings:
+
+```python
+from sqlalchemy.orm import Mapped, mapped_column
+from py_core.database.utils import StringEnum
+
+class WidgetStatus(str, Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    ARCHIVED = "archived"
+
+class Widget(Base):
+    status: Mapped[WidgetStatus] = mapped_column(
+        StringEnum(WidgetStatus), default=WidgetStatus.DRAFT
+    )
+```
+
+**Critical: ORM vs Core Operations**
+
+StringEnum handles conversion automatically in ORM operations, but NOT in Core operations:
+
+```python
+# ORM operations - use enum directly (StringEnum handles conversion)
+widget.status = WidgetStatus.ACTIVE
+query.filter(Widget.status == WidgetStatus.ACTIVE)
+
+# Core update/insert - MUST use .value (TypeDecorator doesn't auto-bind)
+from sqlalchemy import update
+stmt = (
+    update(Widget)
+    .where(Widget.status == WidgetStatus.DRAFT.value)  # .value required!
+    .values(status=WidgetStatus.ACTIVE.value)          # .value required!
+)
+await db.execute(stmt)
+```
+
+If you forget `.value` in Core operations, the query will silently fail to match rows.
+
+### uuid7 for Time-Sortable IDs
+
+All models use uuid7 (time-sortable) for primary keys:
+
+```python
+from py_core.database.utils import uuid7_str
+
+class Widget(Base):
+    id: Mapped[str] = mapped_column(primary_key=True, default=uuid7_str)
+```
+
+**Why uuid7?**
+- Time-sortable: IDs sort chronologically by creation time
+- No collisions: Safe for distributed systems
+- Database-friendly: Better index locality than random UUIDs
+
+### utcnow for Timestamps
+
+Always use the `utcnow()` helper for consistent timestamps:
+
+```python
+from py_core.database.utils import utcnow
+
+class Widget(Base):
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(default=utcnow, onupdate=utcnow)
+```
+
+This returns naive UTC datetimes for `TIMESTAMP WITHOUT TIME ZONE` columns.
