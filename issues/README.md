@@ -1,151 +1,98 @@
-# Local Issue Catalog
+# Issue Tracking
 
-A lightweight, markdown-based issue tracking system for managing project work items locally.
+File-based issue tracking for AI agents and contributors.
 
-## Overview
-
-This directory contains project issues tracked as markdown files:
+## Directory Structure
 
 ```
 issues/
-├── README.md           # This file
-├── open/               # Issues that need work
-│   └── 001-example.md  # Example issue
-└── closed/             # Completed issues
+├── README.md             # This file
+├── _templates/           # Issue templates
+│   ├── standalone.md     # Single-ticket feature/bug/chore
+│   ├── epic-index.md     # Epic overview
+│   └── ticket.md         # Ticket within an epic
+├── epics/                # Multi-ticket features
+│   └── feature-name/
+│       ├── index.md      # Epic overview
+│       └── 0-task.md     # Tickets (0-indexed)
+├── features/             # Single-ticket features
+├── bugs/                 # Bug fixes
+└── chores/               # Maintenance tasks
 ```
 
-## Why Local Issues?
+## Issue Types
 
-- **Version controlled** - Issues are part of the codebase
-- **Offline access** - No dependency on external services
-- **Agent-friendly** - Claude Code can read/write issues directly
-- **Simple** - Just markdown files, no complex tooling
+### Standalone Issues
 
-## Issue Format
-
-Each issue is a markdown file with YAML frontmatter:
-
-```markdown
----
-id: 001
-title: Short descriptive title
-status: open
-priority: medium
-created: 2025-01-15
----
-
-## Description
-
-Detailed description of what needs to be done.
-
-## Tasks
-
-- [ ] First task to complete
-- [ ] Second task to complete
-- [ ] Third task to complete
-
-## Related Files
-
-- `path/to/relevant/file.py`
-- `another/file.ts`
-
-## Notes
-
-Any additional context or notes.
-```
-
-### Frontmatter Fields
-
-| Field | Required | Values | Description |
-|-------|----------|--------|-------------|
-| `id` | Yes | Number | Unique identifier (e.g., 001, 002) |
-| `title` | Yes | String | Short, descriptive title |
-| `status` | Yes | `open`, `closed` | Current status |
-| `priority` | Yes | `low`, `medium`, `high`, `critical` | Issue priority |
-| `created` | Yes | YYYY-MM-DD | Creation date |
-| `closed` | No | YYYY-MM-DD | Completion date (closed issues only) |
-
-### File Naming
-
-Files are named: `{id}-{slug}.md`
-
-Examples:
-- `001-setup-local-dev.md`
-- `002-fix-auth-redirect.md`
-- `003-add-export-feature.md`
-
-## Workflow
-
-### Creating an Issue
-
-1. Determine the next available ID (check `open/` and `closed/`)
-2. Create a new file in `issues/open/`
-3. Fill in the frontmatter and content
-4. Commit the file
+Single-ticket work items in `features/`, `bugs/`, or `chores/`:
 
 ```bash
-# Example: Create issue 004
-touch issues/open/004-my-new-issue.md
-# Edit the file with proper format
-git add issues/open/004-my-new-issue.md
-git commit -m "docs: add issue 004 - my new issue"
+cp issues/_templates/standalone.md issues/features/my-feature.md
+cp issues/_templates/standalone.md issues/bugs/fix-crash.md
+cp issues/_templates/standalone.md issues/chores/update-deps.md
 ```
 
-### Working on an Issue
+### Epics
 
-1. Read the issue to understand requirements
-2. Complete the tasks listed
-3. Check off tasks as you go (update the markdown)
-4. Close the issue when done
-
-### Closing an Issue
-
-1. Update the frontmatter:
-   - Change `status: open` to `status: closed`
-   - Add `closed: YYYY-MM-DD`
-2. Move the file from `open/` to `closed/`
-3. Commit the change
+Large features broken into multiple tickets:
 
 ```bash
-# Update the file first, then:
-mv issues/open/001-example.md issues/closed/
-git add issues/
-git commit -m "docs: close issue 001 - example issue"
+mkdir issues/epics/cloud-sync
+cp issues/_templates/epic-index.md issues/epics/cloud-sync/index.md
+cp issues/_templates/ticket.md issues/epics/cloud-sync/0-sdk-setup.md
+cp issues/_templates/ticket.md issues/epics/cloud-sync/1-oauth.md
 ```
 
-## Using with Claude Code
+- **index.md**: Overview, architecture decisions, ticket table
+- **0-task.md, 1-task.md, ...**: Individual tickets (0-indexed for order)
 
-The `/issues` skill provides commands for working with issues:
+## Status Values
 
+| Status | Indicator | Meaning |
+|--------|-----------|---------|
+| `Planned` | `[ ]` | Ready to be worked on |
+| `In Progress` | `[~]` | Currently being implemented |
+| `Complete` | `[x]` | Done and verified |
+| `Blocked` | `[!]` | Waiting on external dependency |
+
+## Picking Up Work
+
+1. Look for issues with `Status: Planned`
+2. Check dependencies are complete
+3. Update status to `In Progress` when starting
+4. Update status to `Complete` when done
+
+## Creating Issues
+
+### Quick create
+
+```bash
+# Feature
+cp issues/_templates/standalone.md issues/features/add-export.md
+
+# Bug
+cp issues/_templates/standalone.md issues/bugs/fix-playback.md
+
+# Epic
+mkdir issues/epics/multi-vault
+cp issues/_templates/epic-index.md issues/epics/multi-vault/index.md
+cp issues/_templates/ticket.md issues/epics/multi-vault/0-data-model.md
 ```
-/issues              # List open issues
-/issues create       # Create a new issue
-/issues view 001     # View issue details
-/issues close 001    # Close an issue
-```
+
+### Fill in the template
+
+- **Objective**: One sentence describing the goal
+- **Implementation Steps**: Specific guidance with file paths
+- **Acceptance Criteria**: Checkboxes for verification
 
 ## Best Practices
 
-1. **One issue per task** - Keep issues focused and well-scoped
-2. **Clear titles** - Use action-oriented titles (e.g., "Add user export feature")
-3. **Detailed descriptions** - Include context, requirements, and acceptance criteria
-4. **Task checklists** - Break work into concrete, checkable tasks
-5. **Link related files** - Help future readers understand the codebase impact
-6. **Close promptly** - Move issues to `closed/` when complete
+- Keep tickets small enough to complete in one session
+- Reference specific file paths in implementation steps
+- Include code snippets for complex changes
+- Update status immediately when starting/finishing work
+- For epics, update the ticket table in `index.md`
 
-## Integration with PRs
+## External Trackers
 
-When creating a PR that addresses an issue:
-
-1. Reference the issue in your PR description: "Closes issue #001"
-2. Close the issue when the PR is merged
-3. The closed issue serves as documentation of what was done
-
-## Migrating from External Trackers
-
-If moving issues from GitHub/Linear/Jira:
-
-1. Create a new markdown file for each issue
-2. Copy relevant details into the format above
-3. Link to the original issue in the Notes section
-4. Mark external issue as "moved to local catalog"
+This convention is for file-based tracking. For Linear, Jira, or GitHub Issues, use their respective tools (MCP servers, `gh issue`, etc.) instead of scanning local files.

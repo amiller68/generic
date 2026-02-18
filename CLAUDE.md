@@ -1,144 +1,79 @@
-# Generic Template
+# Project Guide
 
-A fullstack Python monorepo template with AI chat, background jobs, and real-time streaming.
+Extensible Docker-based deployment framework for TypeScript and Python applications.
+
+## Quick Reference
+
+```bash
+make install             # Install dependencies for all projects
+make dev                 # Start all dev servers in tmux
+make check               # Run all checks (format, lint, types, tests)
+make build               # Build all projects
+make test                # Run tests for all projects
+make fmt                 # Format all projects
+```
+
+**Project-specific:**
+```bash
+make check-py            # Check Python project only
+make check-ts            # Check TypeScript project only
+make dev-py              # Run Python dev server
+make dev-ts              # Run TypeScript dev servers
+make setup-py            # Start Postgres + Redis for Python
+```
+
+**Deployment:**
+```bash
+make kamal <service> <stage> deploy   # Deploy a service
+make iac <stage> plan                 # Plan infrastructure changes
+make iac <stage> apply                # Apply infrastructure
+```
 
 ## Project Structure
 
 ```
-py/
-├── apps/py-app/          # FastAPI application
-│   ├── src/              # App source code
-│   ├── templates/        # Jinja2 templates
-│   └── static/           # Static assets
-├── packages/py-core/     # Shared library
-│   └── src/py_core/
-│       ├── ai_ml/        # AI/ML: chat engine, pydantic-ai
-│       ├── database/     # SQLAlchemy models, migrations
-│       └── events/       # Event publishing
-ts/                       # TypeScript apps (Vite + Express)
-config/deploy/            # Kamal deployment configs
-docs/                     # Documentation
+py/                      # Python FastAPI application
+├── apps/py-app/         # Main web app with SSR
+└── packages/py-core/    # Shared Python package
+
+ts/                      # TypeScript monorepo (pnpm + Turbo)
+├── apps/web/            # Vite + React frontend
+├── apps/api/            # Express API server
+└── packages/            # Shared configs and types
+
+bin/                     # Deployment and infrastructure scripts
+config/deploy/           # Kamal service configs
+iac/                     # Terraform infrastructure
 ```
 
-## Key Patterns
+For detailed structure, see `docs/PROJECT_LAYOUT.md`.
 
-### SQLAlchemy 2.0 with StringEnum
+## Documentation
 
-All models use `Mapped`/`mapped_column` syntax with `StringEnum` for type-safe enums:
+- `docs/index.md` — Documentation hub and agent instructions
+- `docs/PATTERNS.md` — Coding conventions
+- `docs/SUCCESS_CRITERIA.md` — CI checks
+- `docs/CONTRIBUTING.md` — Contribution guide
+- `docs/PROJECT_LAYOUT.md` — Codebase structure
 
-```python
-from sqlalchemy.orm import Mapped, mapped_column
-from py_core.database.utils import StringEnum
+## Issues
 
-class MyModel(Base):
-    status: Mapped[MyStatus] = mapped_column(StringEnum(MyStatus), default=MyStatus.PENDING)
-```
+Track work items in `issues/`. See `issues/README.md` for the convention.
 
-**Important**: StringEnum usage depends on ORM vs Core:
-```python
-# ORM operations - use enum directly (StringEnum handles conversion)
-model.status = MyStatus.PENDING
-query.filter(Model.status == MyStatus.ACTIVE)
+## Constraints
 
-# Core update/insert - use .value (TypeDecorator doesn't auto-bind)
-update(Model).where(Model.status == MyStatus.DRAFT.value).values(status=MyStatus.ACTIVE.value)
-```
+- Python 3.12+ with uv package manager
+- Node.js 20.x with pnpm 9.x
+- TypeScript strict mode enabled
+- All code must pass CI checks before merge
+- Use Conventional Commits format
+- Secrets managed via 1Password vault (never committed)
 
-### uuid7 for IDs
+## Do Not
 
-All models use uuid7 (time-sortable) for primary keys:
-```python
-from py_core.database.utils import uuid7_str
-
-class MyModel(Base):
-    id: Mapped[str] = mapped_column(primary_key=True, default=uuid7_str)
-```
-
-### Background Jobs (TaskIQ)
-
-Tasks use Redis broker with distributed locking for cron jobs:
-```python
-from src.tasks.cron import cron
-
-@cron("*/5 * * * *", lock_ttl=120)
-async def my_periodic_task():
-    pass
-```
-
-## Deployment
-
-Uses Kamal with 1Password for secrets management.
-
-**Secrets come from 1Password vaults, not kamal env push.**
-
-```bash
-# Deploy
-make kamal ARGS="py production deploy"
-
-# Logs
-make kamal ARGS="py production logs"
-```
-
-Key docs:
-- `docs/deployment/KAMAL.md` - Deployment guide
-- `docs/setup/WALKTHROUGH.md` - Complete setup walkthrough
-
-## Code Quality
-
-```bash
-cd py && make check    # Run all checks (fmt, lint, types, test)
-cd py && make types    # Type checking with ty
-cd py && make lint     # Linting with ruff
-cd py && make fmt      # Format with black
-```
-
-## Local Development
-
-```bash
-make install           # Install all dependencies
-make dev               # Run all dev servers in tmux
-```
-
-Python runs on `localhost:8000`, TypeScript on `localhost:5173`.
-
-## Agent Documentation
-
-For detailed patterns and conventions, see the documentation:
-
-### Python Patterns (`py/docs/`)
-- `py/docs/PYTHON_LIBRARY_PATTERNS.md` - Context DI, Params dataclasses, module organization
-- `py/docs/DATABASE.md` - Migrations, models, local setup
-- `py/docs/SUCCESS_CRITERIA.md` - CI requirements, "done" definition
-- `py/docs/CONTRIBUTING.md` - Contribution guidelines
-
-### Setup & Deployment (`docs/`)
-- `docs/setup/WALKTHROUGH.md` - Complete project setup
-- `docs/setup/ONE_PASSWORD.md` - 1Password vault configuration
-- `docs/setup/INFRASTRUCTURE.md` - Terraform infrastructure
-- `docs/deployment/KAMAL.md` - Deployment guide
-
-### Customization (`docs/customizing/`)
-- `docs/customizing/README.md` - Overview and philosophy
-- `docs/customizing/project-setup.md` - Renaming, domains, .env files
-- `docs/customizing/typescript-packages.md` - TypeScript package patterns
-- `docs/customizing/hybrid-stack.md` - Python API + TypeScript frontend
-- `docs/customizing/multi-tenancy.md` - SaaS tenant isolation
-
-## Issue Tracking
-
-Use `/issues` to work with the local issue catalog in `issues/`.
-
-Issues are markdown files in `issues/open/` and `issues/closed/`. See `issues/README.md` for format and workflow.
-
-## Slash Commands
-
-Available skills:
-- `/init` - Initialize and customize template for your project
-- `/check` - Run all CI checks (format, lint, types, tests)
-- `/draft` - Push branch and create a draft PR
-- `/issues` - Manage local issue catalog
-- `/docs` - Navigate project documentation
-
-## Customization
-
-New to this template? Run `/init` to interactively customize it for your project, or see `docs/customizing/` for manual customization guides.
+- Do not commit `.env` files or secrets
+- Do not skip CI checks with `--no-verify`
+- Do not push directly to main
+- Do not add dependencies without team discussion
+- Do not modify infrastructure without review
+- Do not change PROJECT_NAME in `.env.project` after initialization
