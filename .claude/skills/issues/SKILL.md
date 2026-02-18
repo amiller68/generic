@@ -2,9 +2,10 @@
 description: Discover and manage file-based work items. Use to explore tasks before spawning workers or to track project progress.
 allowed-tools:
   - Bash(ls:*)
-  - Bash(cat:*)
   - Bash(find:*)
   - Bash(grep:*)
+  - Bash(mkdir:*)
+  - Bash(cp:*)
   - Read
   - Write
   - Edit
@@ -12,48 +13,79 @@ allowed-tools:
   - Grep
 ---
 
-Discover and manage work items for the project.
+Discover and manage work items in `issues/`.
 
-Run this command to explore what needs to be done before spawning workers with `/jig`.
+## Directory Structure
+
+```
+issues/
+├── _templates/           # Issue templates
+├── epics/                # Multi-ticket features (directories)
+│   └── feature-name/
+│       ├── index.md      # Epic overview
+│       └── 0-task.md     # Tickets (0-indexed)
+├── features/             # Single-ticket features
+├── bugs/                 # Bug fixes
+└── chores/               # Maintenance tasks
+```
 
 ## Actions
 
 ### List issues
 
-Scan `issues/*.md` and extract from each file:
-- Filename
-- Title (first `# ` heading)
-- Status (from `**Status:**` field)
-- Epic (from `**Epic:**` field, for tickets)
+Scan `issues/` and show all work items:
 
-Group tickets under their parent epic. Show status with indicators:
+```bash
+# All issues
+find issues -name "*.md" -not -path "*/_templates/*" -not -name "README.md"
+
+# By status
+grep -r "Status.*Planned" issues/
+```
+
+Display with status indicators:
 - `[ ]` Planned
 - `[~]` In Progress
 - `[x]` Complete
 - `[!]` Blocked
 
-Highlight which tickets are ready to work on (status: Planned, no blockers).
-
 ### Show issue
 
-Read a specific issue file and display its full contents.
+Read and display a specific issue file.
+
+### Create standalone issue
+
+```bash
+cp issues/_templates/standalone.md issues/features/my-feature.md
+# or issues/bugs/, issues/chores/
+```
 
 ### Create epic
 
-Create a new epic file using the convention from `issues/README.md`.
+```bash
+mkdir issues/epics/my-epic
+cp issues/_templates/epic-index.md issues/epics/my-epic/index.md
+cp issues/_templates/ticket.md issues/epics/my-epic/0-first-task.md
+```
 
-### Create ticket
+### Create ticket in epic
 
-Create a new ticket file linked to an epic, using `issues/_template.md`.
+```bash
+cp issues/_templates/ticket.md issues/epics/my-epic/1-next-task.md
+```
+
+Update the epic's `index.md` ticket table.
 
 ### Update status
 
-Change a ticket's status field (Planned → In Progress → Complete).
+Change the `**Status:**` field:
+- `Planned` → `In Progress` → `Complete`
+- Or `Blocked` if waiting on something
 
 ## Convention
 
-See `issues/README.md` for the full issue tracking convention.
+See `issues/README.md` for full documentation.
 
 ## External Trackers
 
-This uses file-based issue tracking by default. For external trackers like Linear, Jira, or GitHub Issues, use their respective MCP tools or CLI (`gh issue`) instead and skip the file scanning.
+For Linear, Jira, or GitHub Issues, use their MCP tools or CLI instead of file scanning.

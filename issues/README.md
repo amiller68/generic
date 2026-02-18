@@ -2,109 +2,97 @@
 
 File-based issue tracking for AI agents and contributors.
 
-This is the default convention for projects using `jig`. If your project uses an external tracker like Linear, Jira, or GitHub Issues, you can replace this workflow with your own — the `/issues` command can be adapted to query external tools (e.g., Linear MCP) instead of scanning local files.
-
 ## Directory Structure
 
 ```
 issues/
-├── README.md                   # This file (convention docs)
-├── _template.md                # Ticket template
-├── cloud-sync.md               # Epic (high-level overview)
-├── cloud-sync-01-sdk-setup.md  # Ticket (specific task)
-├── cloud-sync-02-oauth.md
-└── ...
+├── README.md             # This file
+├── _templates/           # Issue templates
+│   ├── standalone.md     # Single-ticket feature/bug/chore
+│   ├── epic-index.md     # Epic overview
+│   └── ticket.md         # Ticket within an epic
+├── epics/                # Multi-ticket features
+│   └── feature-name/
+│       ├── index.md      # Epic overview
+│       └── 0-task.md     # Tickets (0-indexed)
+├── features/             # Single-ticket features
+├── bugs/                 # Bug fixes
+└── chores/               # Maintenance tasks
 ```
 
 ## Issue Types
 
+### Standalone Issues
+
+Single-ticket work items in `features/`, `bugs/`, or `chores/`:
+
+```bash
+cp issues/_templates/standalone.md issues/features/my-feature.md
+cp issues/_templates/standalone.md issues/bugs/fix-crash.md
+cp issues/_templates/standalone.md issues/chores/update-deps.md
+```
+
 ### Epics
 
-Large features or initiatives broken into multiple tickets.
+Large features broken into multiple tickets:
 
-- **File naming**: `feature-name.md` (descriptive, no number prefix)
-- **Purpose**: High-level overview, context, and architecture decisions
-- **Contains**: Background, phases, key technical decisions
-- **Links to**: Child tickets for each discrete task
-
-### Tickets
-
-Focused, actionable tasks that can be completed in a single session.
-
-- **File naming**: `feature-NN-short-description.md` (e.g., `cloud-sync-02-oauth.md`)
-- **Number prefix**: Suggests execution order within a feature
-- **Purpose**: Everything needed to implement one specific task
-- **Links to**: Parent epic for full context
-
-## Ticket Format
-
-See `_template.md` for the standard ticket format, or use this structure:
-
-```markdown
-# [Ticket Title]
-
-**Status:** Planned | In Progress | Complete | Blocked
-**Epic:** [epic-name.md](./epic-name.md)
-**Dependencies:** ticket-01 (if any)
-
-## Objective
-
-One-sentence description of what this ticket accomplishes.
-
-## Implementation Steps
-
-1. Step-by-step guide
-2. With specific file paths
-3. And code snippets where helpful
-
-## Files to Modify/Create
-
-- `path/to/file` - Description of changes
-
-## Acceptance Criteria
-
-- [ ] Checkbox criteria
-- [ ] That can be verified
-
-## Verification
-
-How to test that this is working.
+```bash
+mkdir issues/epics/cloud-sync
+cp issues/_templates/epic-index.md issues/epics/cloud-sync/index.md
+cp issues/_templates/ticket.md issues/epics/cloud-sync/0-sdk-setup.md
+cp issues/_templates/ticket.md issues/epics/cloud-sync/1-oauth.md
 ```
+
+- **index.md**: Overview, architecture decisions, ticket table
+- **0-task.md, 1-task.md, ...**: Individual tickets (0-indexed for order)
 
 ## Status Values
 
-| Status | Meaning |
-|--------|---------|
-| `Planned` | Ready to be worked on |
-| `In Progress` | Currently being implemented |
-| `Complete` | Done and verified |
-| `Blocked` | Waiting on external dependency |
+| Status | Indicator | Meaning |
+|--------|-----------|---------|
+| `Planned` | `[ ]` | Ready to be worked on |
+| `In Progress` | `[~]` | Currently being implemented |
+| `Complete` | `[x]` | Done and verified |
+| `Blocked` | `[!]` | Waiting on external dependency |
 
 ## Picking Up Work
 
-1. Look in `issues/` for tickets with `Status: Planned`
-2. Check the parent epic for broader context
-3. Verify dependencies are complete before starting
-4. Update status to `In Progress` when starting
-5. Update status to `Complete` when done
+1. Look for issues with `Status: Planned`
+2. Check dependencies are complete
+3. Update status to `In Progress` when starting
+4. Update status to `Complete` when done
 
-## Creating New Tickets
+## Creating Issues
 
-1. Copy `_template.md` to a new file with the appropriate name
-2. If working on an existing epic, follow its naming pattern
-3. For new features, create an epic first if the scope is large
+### Quick create
 
-## Dependencies
+```bash
+# Feature
+cp issues/_templates/standalone.md issues/features/add-export.md
 
-Tickets can have dependencies in two ways:
+# Bug
+cp issues/_templates/standalone.md issues/bugs/fix-playback.md
 
-1. **Implicit (number order)**: `feature-01` should be done before `feature-02`
-2. **Explicit**: Listed in the Dependencies field when non-linear
+# Epic
+mkdir issues/epics/multi-vault
+cp issues/_templates/epic-index.md issues/epics/multi-vault/index.md
+cp issues/_templates/ticket.md issues/epics/multi-vault/0-data-model.md
+```
+
+### Fill in the template
+
+- **Objective**: One sentence describing the goal
+- **Implementation Steps**: Specific guidance with file paths
+- **Acceptance Criteria**: Checkboxes for verification
 
 ## Best Practices
 
 - Keep tickets small enough to complete in one session
 - Reference specific file paths in implementation steps
 - Include code snippets for complex changes
-- Always link back to the parent epic
 - Update status immediately when starting/finishing work
+- For epics, update the ticket table in `index.md`
+
+## External Trackers
+
+This convention is for file-based tracking. For Linear, Jira, or GitHub Issues, use their respective tools (MCP servers, `gh issue`, etc.) instead of scanning local files.
