@@ -79,3 +79,36 @@ clean: ## Clean build artifacts
 	@find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	@find . -type d -name ".ruff_cache" -exec rm -rf {} +
 	@find . -type f -name "*.pyc" -delete
+
+# Database commands
+.PHONY: db-up
+db-up: ## Start PostgreSQL container
+	@./bin/db.sh up
+
+.PHONY: db-down
+db-down: ## Stop and remove PostgreSQL container (deletes data)
+	@./bin/db.sh down
+
+.PHONY: db-status
+db-status: ## Check PostgreSQL container status
+	@./bin/db.sh status
+
+.PHONY: db-endpoint
+db-endpoint: ## Print PostgreSQL connection URL
+	@./bin/db.sh endpoint
+
+.PHONY: db-connect
+db-connect: ## Connect to PostgreSQL with psql
+	@./bin/db.sh connect
+
+.PHONY: db-migrate
+db-migrate: ## Run pending database migrations
+	@$(POSTGRES_ENV) ./bin/db.sh migrate
+
+.PHONY: db-prepare
+db-prepare: ## Create new migration (usage: make db-prepare MSG="description")
+ifdef MANUAL
+	@$(POSTGRES_ENV) ./bin/db.sh prepare --manual "$(MSG)"
+else
+	@$(POSTGRES_ENV) ./bin/db.sh prepare "$(MSG)"
+endif

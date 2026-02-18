@@ -144,7 +144,8 @@ make dev         # Run dev servers (ports 5173, 3001)
 
 ```bash
 cd py
-make db migrate "description"  # Generate migration
-make db upgrade                # Apply migrations
-make db downgrade              # Rollback one migration
+make db-prepare MSG="description"   # Generate migration from model changes
+make db-migrate                     # Apply pending migrations
 ```
+
+For manual migrations or more commands, see `py/docs/DATABASE.md`.

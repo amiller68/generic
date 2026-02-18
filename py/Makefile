@@ -88,6 +88,19 @@ clean: ## Clean build artifacts
 	@rm -rf .venv
 	@echo "✓ Clean complete"
 
+# Database commands (delegated to py-core)
+.PHONY: db
+db: ## Database commands (usage: make db <command>)
+	@$(MAKE) -C packages/py-core db-$(filter-out $@,$(MAKECMDGOALS))
+
+.PHONY: db-migrate
+db-migrate: ## Run pending database migrations
+	@$(MAKE) -C packages/py-core db-migrate
+
+.PHONY: db-prepare
+db-prepare: ## Create new migration (usage: make db-prepare MSG="description")
+	@$(MAKE) -C packages/py-core db-prepare MSG="$(MSG)" MANUAL="$(MANUAL)"
+
 # Catch additional arguments
 %:
 	@:
