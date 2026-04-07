@@ -1,0 +1,244 @@
+# Fixtures - initial data set up automatically on dev environment startup
+#
+# Applied automatically by: ./bin/dev
+# Run manually with: ./bin/dev fixtures
+#
+# Fixtures are applied in order. Each fixture type:
+#   bucket    - Create a bucket
+#   file      - Upload a file to a bucket
+#   dir       - Create a directory in a bucket
+#   share     - Share a bucket with a peer (role: owner/mirror)
+#   publish   - Publish a bucket (grant decryption to mirrors)
+#   mv        - Move/rename a file or directory
+#   mount     - Mount a bucket via FUSE
+#   mount_verify - Verify FUSE mount is accessible
+#   unmount   - Unmount a FUSE-mounted bucket
+#   fuse_ls   - List a directory on a FUSE mount
+#   fuse_read - Read a file on a FUSE mount (optionally verify content)
+#   fuse_write - Write a file on a FUSE mount
+#   fuse_mv   - Move/rename a file within a FUSE mount
+#   fuse_mv_in  - Move a file from outside into a FUSE mount
+#   fuse_mv_out - Move a file from a FUSE mount to outside
+#   fuse_rm   - Delete a file on a FUSE mount
+
+# =============================================================================
+# OWNER NODE: Create and set up test bucket
+# =============================================================================
+
+# Create a test bucket on owner node
+[[fixture]]
+type = "bucket"
+name = "test"
+node = "owner"
+
+# Upload a file at root level
+[[fixture]]
+type = "file"
+bucket = "test"
+path = "/hello.txt"
+content = "Hello from jax-bucket!\n"
+node = "owner"
+
+# Create a nested directory
+[[fixture]]
+type = "dir"
+bucket = "test"
+path = "/docs"
+node = "owner"
+
+# Upload a nested file
+[[fixture]]
+type = "file"
+bucket = "test"
+path = "/docs/readme.md"
+content = """# Test Bucket
+
+This is a test bucket for demonstrating jax-bucket features.
+
+## Files
+- `/hello.txt` - A simple greeting
+- `/docs/readme.md` - This file
+
+## Sharing
+This bucket is shared with:
+- `_owner` node as **owner** (can read/write)
+- `mirror` node as **mirror** (can sync, decrypt after publish)
+"""
+node = "owner"
+
+# Upload a CSV file with relative links to other bucket files
+[[fixture]]
+type = "file"
+bucket = "test"
+path = "/docs/links.csv"
+content = "name,path\nHello,./hello.txt\nReadme,./readme.md\nRoot hello,../docs/hello.txt\n"
+node = "owner"
+
+# Share with _owner node as owner
+[[fixture]]
+type = "share"
+bucket = "test"
+peer = "_owner"
+role = "owner"
+node = "owner"
+
+# Share with mirror as mirror
+[[fixture]]
+type = "share"
+bucket = "test"
+peer = "mirror"
+role = "mirror"
+node = "owner"
+
+# Publish the bucket (grant decryption to mirrors)
+[[fixture]]
+type = "publish"
+bucket = "test"
+node = "owner"
+
+# =============================================================================
+# OWNER NODE: Modify the bucket
+# =============================================================================
+
+# Move the original file to a nested directory
+# Note: Running on owner node since sync from owner->_owner may not be complete yet
+[[fixture]]
+type = "mv"
+bucket = "test"
+from = "/hello.txt"
+to = "/docs/hello.txt"
+node = "owner"
+
+# =============================================================================
+# FUSE MOUNT TEST (optional - only runs if FUSE is available)
+# =============================================================================
+
+# Mount the bucket via FUSE on owner node
+[[fixture]]
+type = "mount"
+bucket = "test"
+mount_point = "/tmp/jax-e2e-mount"
+node = "owner"
+
+# Verify mount is accessible
+[[fixture]]
+type = "mount_verify"
+bucket = "test"
+mount_point = "/tmp/jax-e2e-mount"
+node = "owner"
+
+# List root directory
+[[fixture]]
+type = "fuse_ls"
+mount_point = "/tmp/jax-e2e-mount"
+path = "docs"
+
+# Read an existing file
+[[fixture]]
+type = "fuse_read"
+mount_point = "/tmp/jax-e2e-mount"
+path = "docs/hello.txt"
+
+# Write a new file
+[[fixture]]
+type = "fuse_write"
+mount_point = "/tmp/jax-e2e-mount"
+path = ".fuse-test.txt"
+content = "hello from fuse"
+
+# --- Move within mount (regression test: create-then-rename must not ENOENT) ---
+[[fixture]]
+type = "fuse_mv"
+mount_point = "/tmp/jax-e2e-mount"
+from = ".fuse-test.txt"
+to = ".fuse-test-renamed.txt"
+
+# Verify renamed file has correct content
+[[fixture]]
+type = "fuse_read"
+mount_point = "/tmp/jax-e2e-mount"
+path = ".fuse-test-renamed.txt"
+content = "hello from fuse"
+
+# --- Move into mount (external file -> FUSE mount) ---
+[[fixture]]
+type = "fuse_mv_in"
+mount_point = "/tmp/jax-e2e-mount"
+path = ".fuse-test-from-outside.txt"
+content = "moved in from outside"
+
+# Verify the file arrived
+[[fixture]]
+type = "fuse_read"
+mount_point = "/tmp/jax-e2e-mount"
+path = ".fuse-test-from-outside.txt"
+content = "moved in from outside"
+
+# --- Move out of mount (FUSE mount -> external path) ---
+[[fixture]]
+type = "fuse_mv_out"
+mount_point = "/tmp/jax-e2e-mount"
+path = ".fuse-test-from-outside.txt"
+
+# Overwrite the renamed file
+[[fixture]]
+type = "fuse_write"
+mount_point = "/tmp/jax-e2e-mount"
+path = ".fuse-test-renamed.txt"
+content = "overwritten"
+
+# Verify overwrite
+[[fixture]]
+type = "fuse_read"
+mount_point = "/tmp/jax-e2e-mount"
+path = ".fuse-test-renamed.txt"
+content = "overwritten"
+
+# Clean up
+[[fixture]]
+type = "fuse_rm"
+mount_point = "/tmp/jax-e2e-mount"
+path = ".fuse-test-renamed.txt"
+
+# Unmount when done
+[[fixture]]
+type = "unmount"
+bucket = "test"
+node = "owner"
+
+# =============================================================================
+# EXPECTED END STATE
+# =============================================================================
+#
+# After all fixtures apply successfully:
+#
+# Bucket "test" structure:
+#   /docs/
+#   /docs/hello.txt    (moved from /hello.txt)
+#   /docs/readme.md
+#   /docs/links.csv    (CSV with relative paths to other files)
+#
+# Node visibility:
+#   - owner  (API:5002, GW:8081): Owns bucket, sees latest state
+#   - _owner (API:5003, GW:8082): Owner share, sees latest state after sync
+#   - mirror (API:5004, GW:8083): Mirror share, sees latest state (publish persists across saves)
+#
+# FUSE mount test (if FUSE available):
+#   - Mounts bucket at /tmp/jax-e2e-mount on owner node
+#   - Runs declarative FUSE operations: ls, read, write,
+#     mv (within), mv_in (external→mount), mv_out (mount→external),
+#     write (overwrite), read (verify), rm
+#   - Unmounts after verification
+#
+# Each node runs separate API and gateway servers:
+#   - API:     http://localhost:5002 (owner), 5003 (_owner), 5004 (mirror)
+#   - Gateway: http://localhost:8081 (owner), 8082 (_owner), 8083 (mirror)
+#
+# Verify with:
+#   ./bin/dev api owner ls <bucket_id> /docs
+#   ./bin/dev api _owner ls <bucket_id> /docs
+#   curl http://localhost:8083/gw/<bucket_id>/docs/hello.txt
+#
+# FUSE verification (manual):
+#   ./bin/dev api owner mount-list
+#   ls /tmp/jax-e2e-mount/docs/

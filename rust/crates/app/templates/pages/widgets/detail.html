@@ -1,0 +1,157 @@
+<div class="space-y-6">
+    <div class="flex items-center gap-4">
+        <a href="/widgets"
+           hx-get="/widgets"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="text-muted-foreground hover:text-foreground">
+            <uk-icon icon="arrow-left"></uk-icon>
+        </a>
+        <h1 class="text-3xl font-bold">{{ widget.name() }}</h1>
+        {% if widget.status() == "active" %}
+        <span id="status-badge" class="uk-badge uk-badge-primary">active</span>
+        {% else if widget.status() == "processing" %}
+        <span id="status-badge" class="uk-badge uk-badge-warning">processing</span>
+        {% else %}
+        <span id="status-badge" class="uk-badge uk-badge-secondary">{{ widget.status() }}</span>
+        {% endif %}
+    </div>
+
+    <div class="uk-card uk-card-default uk-card-body space-y-4">
+        {% if !widget.description().is_empty() %}
+        <div>
+            <h3 class="text-sm font-medium text-muted-foreground mb-1">Description</h3>
+            <p>{{ widget.description() }}</p>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <h3 class="text-sm font-medium text-muted-foreground mb-1">Created</h3>
+                <p class="text-sm">{{ widget.created_at() }}</p>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-muted-foreground mb-1">Updated</h3>
+                <p class="text-sm">{{ widget.updated_at() }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task progress (SSE-powered) -->
+    <div id="task-status" class="hidden">
+        <div class="uk-card uk-card-default uk-card-body">
+            <div class="flex items-center gap-3">
+                <div class="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                <span id="task-message">Processing...</span>
+            </div>
+            <div class="mt-2 w-full bg-muted rounded-full h-2">
+                <div id="task-progress" class="bg-primary h-2 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex gap-3">
+        <a href="/widgets/{{ widget.id() }}/edit"
+           hx-get="/widgets/{{ widget.id() }}/edit"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="uk-button uk-button-default">
+            <uk-icon icon="pencil" class="w-4 h-4 mr-2"></uk-icon>
+            Edit
+        </a>
+        {% if widget.status() != "processing" %}
+        <button type="button" class="uk-button uk-button-primary" id="btn-process"
+                hx-post="/widgets/{{ widget.id() }}/process"
+                hx-swap="none">
+            <uk-icon icon="play" class="w-4 h-4 mr-2"></uk-icon>
+            Process
+        </button>
+        {% endif %}
+        {% if !widget.is_archived() %}
+        <button type="button" class="uk-button uk-button-danger" uk-toggle="target: #archive-modal">
+            <uk-icon icon="archive" class="w-4 h-4 mr-2"></uk-icon>
+            Archive
+        </button>
+        {% endif %}
+    </div>
+
+    {% if !widget.is_archived() %}
+    <div id="archive-modal" uk-modal>
+        <div class="uk-modal-dialog">
+            <div class="uk-modal-header">
+                <h2 class="uk-modal-title">Archive Widget</h2>
+            </div>
+            <div class="uk-modal-body">
+                <p>Are you sure you want to archive <strong>{{ widget.name() }}</strong>? It will no longer appear in the widget list.</p>
+            </div>
+            <div class="uk-modal-footer flex justify-end gap-3">
+                <button type="button" class="uk-button uk-button-default uk-modal-close">Cancel</button>
+                <form method="post" action="/widgets/{{ widget.id() }}/archive">
+                    <button type="submit" class="uk-button uk-button-danger">
+                        <uk-icon icon="archive" class="w-4 h-4 mr-2"></uk-icon>
+                        Archive
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+(function() {
+    var widgetId = "{{ widget.id() }}";
+    var status = "{{ widget.status() }}";
+
+    function connectSSE() {
+        document.getElementById('task-status').classList.remove('hidden');
+        var badge = document.getElementById('status-badge');
+        badge.className = 'uk-badge uk-badge-warning';
+        badge.textContent = 'processing';
+
+        var evtSource = new EventSource('/_events');
+
+        evtSource.addEventListener('widget_processing', function(e) {
+            try {
+                var data = JSON.parse(e.data);
+                if (data.event.data.widget_id !== widgetId) return;
+                document.getElementById('task-message').textContent = data.event.data.message;
+                document.getElementById('task-progress').style.width = data.event.data.progress + '%';
+            } catch(err) {}
+        });
+
+        evtSource.addEventListener('widget_processed', function(e) {
+            try {
+                var data = JSON.parse(e.data);
+                if (data.event.data.widget_id !== widgetId) return;
+            } catch(err) {}
+            evtSource.close();
+            window.location.reload();
+        });
+
+        evtSource.addEventListener('widget_process_failed', function(e) {
+            try {
+                var data = JSON.parse(e.data);
+                if (data.event.data.widget_id !== widgetId) return;
+                document.getElementById('task-message').textContent = 'Failed: ' + (data.event.data.error || 'Unknown error');
+            } catch(err) {}
+            evtSource.close();
+        });
+    }
+
+    // Auto-connect if already processing
+    if (status === 'processing') {
+        connectSSE();
+    }
+
+    // Connect on button click
+    var btn = document.getElementById('btn-process');
+    if (btn) {
+        btn.addEventListener('htmx:afterRequest', function() {
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            connectSSE();
+        });
+    }
+})();
+</script>

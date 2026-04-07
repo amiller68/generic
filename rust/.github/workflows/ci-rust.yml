@@ -1,0 +1,163 @@
+name: Rust CI 🦀
+
+on:
+  workflow_call:
+
+jobs:
+  quality:
+    name: Quality Checks (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: fuse
+            cargo-features: "--all-features"
+            install-fuse: true
+          - variant: no-fuse
+            cargo-features: "--no-default-features"
+            install-fuse: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        if: matrix.install-fuse
+        run: sudo apt-get update && sudo apt-get install -y libfuse3-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-index-
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: rust/target
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-build-target-
+
+      - name: Run quality checks
+        run: bash bin/check
+        env:
+          CARGO_FEATURES: ${{ matrix.cargo-features }}
+
+  test:
+    name: Tests (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: fuse
+            cargo-features: "--all-features"
+            install-fuse: true
+          - variant: no-fuse
+            cargo-features: "--no-default-features"
+            install-fuse: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        if: matrix.install-fuse
+        run: sudo apt-get update && sudo apt-get install -y libfuse3-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-index-
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: rust/target
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-build-target-
+
+      - name: Run tests
+        run: bash bin/test
+        env:
+          CARGO_FEATURES: ${{ matrix.cargo-features }}
+
+  build:
+    name: Build (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: fuse
+            cargo-features: "--all-features"
+            install-fuse: true
+          - variant: no-fuse
+            cargo-features: "--no-default-features"
+            install-fuse: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        if: matrix.install-fuse
+        run: sudo apt-get update && sudo apt-get install -y libfuse3-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-index-
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: rust/target
+          key: ${{ runner.os }}-${{ matrix.variant }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.variant }}-cargo-build-target-
+
+      - name: Build project
+        run: bash bin/build
+        env:
+          CARGO_FEATURES: ${{ matrix.cargo-features }}

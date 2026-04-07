@@ -1,0 +1,135 @@
+name: Publish to crates.io
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  publish:
+    name: Publish Crates
+    runs-on: ubuntu-latest
+    # Run when release PR is merged (version bump or initial publish) OR manual trigger
+    if: "github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'Bump jax-') || contains(github.event.head_commit.message, 'chore: initial publish of jax-')"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history and tags
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install FUSE development libraries
+        run: sudo apt-get update && sudo apt-get install -y libfuse3-dev
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-index-
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-target-
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tags
+        run: |
+          # Read versions from Cargo.toml files
+          COMMON_VERSION=$(grep "^version" crates/common/Cargo.toml | cut -d'"' -f2)
+          DAEMON_VERSION=$(grep "^version" crates/daemon/Cargo.toml | cut -d'"' -f2)
+          OBJECT_STORE_VERSION=$(grep "^version" crates/object-store/Cargo.toml | cut -d'"' -f2)
+          DESKTOP_VERSION=$(grep "^version" crates/desktop/src-tauri/Cargo.toml | cut -d'"' -f2)
+
+          echo "Creating tags for:"
+          echo "  jax-common v$COMMON_VERSION"
+          echo "  jax-daemon v$DAEMON_VERSION"
+          echo "  jax-object-store v$OBJECT_STORE_VERSION"
+          echo "  jax-desktop v$DESKTOP_VERSION"
+
+          # Create and push tags (skip if already exists)
+          for tag in "jax-common-v$COMMON_VERSION" "jax-daemon-v$DAEMON_VERSION" "jax-object-store-v$OBJECT_STORE_VERSION" "jax-desktop-v$DESKTOP_VERSION"; do
+            if git rev-parse "$tag" >/dev/null 2>&1; then
+              echo "Tag $tag already exists, skipping"
+            else
+              git tag -a "$tag" -m "Release $tag"
+              git push origin "$tag"
+              echo "Created and pushed $tag"
+            fi
+          done
+
+          echo "Tags processed successfully"
+
+      - name: Publish jax-object-store
+        run: |
+          cd crates/object-store
+          echo "Publishing jax-object-store..."
+          cargo publish --token $CARGO_REGISTRY_TOKEN || echo "jax-object-store publish failed or already published"
+          cd ../..
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io indexing (object-store)
+        run: |
+          echo "Waiting 90 seconds for crates.io to index jax-object-store..."
+          sleep 90
+
+      - name: Publish jax-common
+        run: |
+          cd crates/common
+          echo "Publishing jax-common..."
+          cargo publish --token $CARGO_REGISTRY_TOKEN || echo "jax-common publish failed or already published"
+          cd ../..
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io indexing (common)
+        run: |
+          echo "Waiting 90 seconds for crates.io to index jax-common..."
+          sleep 90
+
+      - name: Publish jax-daemon
+        run: |
+          cd crates/daemon
+          echo "Publishing jax-daemon..."
+          cargo publish --token $CARGO_REGISTRY_TOKEN || echo "jax-daemon publish failed or already published"
+          cd ../..
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Summary
+        run: |
+          COMMON_VERSION=$(grep "^version" crates/common/Cargo.toml | cut -d'"' -f2)
+          DAEMON_VERSION=$(grep "^version" crates/daemon/Cargo.toml | cut -d'"' -f2)
+          OBJECT_STORE_VERSION=$(grep "^version" crates/object-store/Cargo.toml | cut -d'"' -f2)
+          echo "Release complete!"
+          echo "   - jax-common v$COMMON_VERSION"
+          echo "   - jax-object-store v$OBJECT_STORE_VERSION"
+          echo "   - jax-daemon v$DAEMON_VERSION"
+          echo ""
+          echo "Check crates.io:"
+          echo "   - https://crates.io/crates/jax-common"
+          echo "   - https://crates.io/crates/jax-object-store"
+          echo "   - https://crates.io/crates/jax-daemon"

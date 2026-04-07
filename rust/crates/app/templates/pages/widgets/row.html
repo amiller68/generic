@@ -1,0 +1,24 @@
+<tr>
+    <td>
+        <a href="/widgets/{{ widget.id() }}"
+           hx-get="/widgets/{{ widget.id() }}"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="font-medium hover:text-primary">
+            {{ widget.name() }}
+        </a>
+        {% if !widget.description().is_empty() %}
+        <p class="text-xs text-muted-foreground mt-1">{{ widget.description() }}</p>
+        {% endif %}
+    </td>
+    <td>
+        {% if widget.status() == "active" %}
+        <span class="uk-badge uk-badge-success">Active</span>
+        {% else if widget.status() == "draft" %}
+        <span class="uk-badge uk-badge-secondary">Draft</span>
+        {% else %}
+        <span class="uk-badge uk-badge-muted">{{ widget.status() }}</span>
+        {% endif %}
+    </td>
+    <td class="text-sm text-muted-foreground">{{ widget.created_at() }}</td>
+</tr>

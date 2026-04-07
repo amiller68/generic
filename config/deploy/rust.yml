@@ -1,0 +1,41 @@
+service: <%= ENV['PROJECT_NAME'] %>-rust
+
+deploy_timeout: 180
+
+image: <%= ENV['DOCKER_HUB_USERNAME'] %>/<%= ENV['PROJECT_NAME'] %>-rust
+
+servers:
+  web:
+    - "<%= ENV['SERVER_IP'].strip %>"
+
+ssh:
+  user: root
+  keys: ["<%= ENV['SSH_PRIVATE_KEY_FILE'] %>"]
+
+registry:
+  username: <%= ENV['DOCKER_HUB_USERNAME'] %>
+  password:
+    - DOCKER_HUB_TOKEN
+
+builder:
+  dockerfile: Dockerfile
+  context: "rust"
+  arch: amd64
+
+proxy:
+  ssl: true
+  host: <%= ENV['HOST_NAME'] %>
+  app_port: 3000
+  healthcheck:
+    path: /_status/livez
+
+env:
+  clear:
+    SQLITE_DATABASE_URL: sqlite:///data/app.db
+    LISTEN_ADDRESS: 0.0.0.0:3000
+    HOST_NAME: https://<%= ENV['HOST_NAME'] %>
+    LOG_LEVEL: info
+  secret:
+    - GOOGLE_O_AUTH_CLIENT_ID
+    - GOOGLE_O_AUTH_CLIENT_SECRET
+    - SERVICE_SECRET
