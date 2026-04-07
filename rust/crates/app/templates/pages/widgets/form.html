@@ -1,0 +1,53 @@
+<div class="space-y-6">
+    <div class="flex items-center gap-4">
+        <a href="/widgets"
+           hx-get="/widgets"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="text-muted-foreground hover:text-foreground">
+            <uk-icon icon="arrow-left"></uk-icon>
+        </a>
+        <h1 class="text-3xl font-bold">
+            {% match widget %}
+            {% when Some with (_w) %}Edit Widget{% when None %}New Widget{% endmatch %}
+        </h1>
+    </div>
+
+    <form method="post"
+          {% match widget %}
+          {% when Some with (w) %}action="/widgets/{{ w.id() }}/edit"{% when None %}action="/widgets/new"{% endmatch %}
+          class="uk-card uk-card-default uk-card-body space-y-4 max-w-xl">
+        <div>
+            <label class="uk-form-label" for="name">Name</label>
+            <input type="text"
+                   id="name"
+                   name="name"
+                   class="uk-input"
+                   required
+                   {% match widget %}{% when Some with (w) %}value="{{ w.name() }}"{% when None %}{% endmatch %}
+                   placeholder="Widget name" />
+        </div>
+
+        <div>
+            <label class="uk-form-label" for="description">Description</label>
+            <textarea id="description"
+                      name="description"
+                      class="uk-textarea"
+                      rows="3"
+                      placeholder="Optional description">{% match widget %}{% when Some with (w) %}{{ w.description() }}{% when None %}{% endmatch %}</textarea>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="uk-button uk-button-primary">
+                {% match widget %}{% when Some with (_) %}Save Changes{% when None %}Create Widget{% endmatch %}
+            </button>
+            <a href="/widgets"
+               hx-get="/widgets"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="uk-button uk-button-default">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>

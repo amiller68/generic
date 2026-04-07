@@ -1,0 +1,106 @@
+{% extends "layouts/base.html" %}
+
+{% block body %}
+<!-- Navigation Header -->
+<header class="flex items-center justify-between w-full shadow-sm px-4 py-2">
+    <div class="flex items-center">
+        <a href="/"
+           hx-get="/"
+           hx-target="#content"
+           hx-push-url="true"
+           class="flex items-center px-2 py-1 hover:bg-muted rounded-full">
+            <img src="/static/icon.svg" alt="Icon" class="h-8 mr-2" />
+            <div class="flex flex-col">
+                <span class="font-black text-xl leading-none">generic</span>
+            </div>
+        </a>
+    </div>
+
+    <nav class="hidden sm:flex items-center flex-grow justify-center">
+    </nav>
+
+    <div class="flex items-center gap-2 mr-4">
+        <!-- Dark mode toggle -->
+        <button id="theme-toggle-compact" class="uk-button uk-button-ghost uk-button-icon uk-button-small" aria-label="Toggle theme">
+            <span class="relative block w-5 h-5">
+                <uk-icon icon="sun" class="js-sun-icon absolute inset-0 transition-all duration-300"></uk-icon>
+                <uk-icon icon="moon" class="js-moon-icon absolute inset-0 transition-all duration-300 opacity-0"></uk-icon>
+            </span>
+        </button>
+    </div>
+
+    <div class="flex items-stretch">
+        {% block header_action %}
+        <a href="/widgets"
+           class="bg-foreground text-background px-6 py-2 hover:opacity-90 flex items-center justify-center rounded-full mx-3 my-2">
+            beta &rarr;
+        </a>
+        {% endblock %}
+    </div>
+</header>
+
+<style>
+  .js-sun-icon { transform: scale(1) rotate(0deg); opacity: 1; }
+  .js-moon-icon { transform: scale(0) rotate(-90deg); opacity: 0; }
+  .dark .js-sun-icon { transform: scale(0) rotate(90deg); opacity: 0; }
+  .dark .js-moon-icon { transform: scale(1) rotate(0deg); opacity: 1; }
+</style>
+
+<script>
+  (function() {
+    const btn = document.getElementById('theme-toggle-compact');
+    if (btn) {
+      btn.addEventListener('click', function() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const data = JSON.parse(localStorage.getItem('__FRANKEN__') || '{}');
+        if (isDark) {
+          document.documentElement.classList.remove('dark');
+          data.mode = 'light';
+        } else {
+          document.documentElement.classList.add('dark');
+          data.mode = 'dark';
+        }
+        localStorage.setItem('__FRANKEN__', JSON.stringify(data));
+      });
+    }
+  })();
+</script>
+
+<!-- Main content area -->
+<main id="content" class="flex-1">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="bg-foreground text-background w-full">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Generic</h3>
+                <p class="text-sm opacity-90">
+                    Patterns for building full stack applications with type safety and rapid iteration.
+                </p>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="#what-you-get" class="text-sm opacity-90 hover:opacity-100 transition-opacity">Features</a></li>
+                    <li><a href="/widgets" class="text-sm opacity-90 hover:opacity-100 transition-opacity">Widgets</a></li>
+                    <li><a href="/auth/google/login" class="text-sm opacity-90 hover:opacity-100 transition-opacity">Login</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Connect</h3>
+                <div class="flex space-x-4">
+                    <a href="https://github.com/amiller68/generic" class="opacity-90 hover:opacity-100 transition-opacity">
+                        <uk-icon icon="github" width="24" height="24"></uk-icon>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-background/10 text-center text-sm opacity-75">
+            &copy; 2026 Krondor Corp. All rights reserved.
+        </div>
+    </div>
+</footer>
+{% endblock %}

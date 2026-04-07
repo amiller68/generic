@@ -1,0 +1,61 @@
+[workspace]
+resolver = "2"
+members = ["crates/app"]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+# Core async/error handling
+anyhow = "1.0"
+tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "time"] }
+futures = "0.3"
+async-trait = "0.1"
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Web framework
+axum = { version = "0.7", features = ["macros"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+tower = { version = "0.5", features = ["load-shed", "limit", "timeout", "util"] }
+tower-http = { version = "0.6", features = ["fs", "cors", "sensitive-headers", "trace", "limit", "util"] }
+http = "1.0"
+
+# Logging/tracing
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt", "local-time", "time", "tracing"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "time", "macros", "uuid"] }
+
+tokio-stream = { version = "0.1", features = ["sync"] }
+
+# Background jobs
+apalis = "1.0.0-rc.7"
+apalis-sqlite = "1.0.0-rc.6"
+
+# Templating
+askama = { version = "0.12", features = ["with-axum"] }
+askama_axum = "0.4"
+
+# Utilities
+thiserror = "1.0"
+url = { version = "2.5", features = ["serde"] }
+uuid = { version = "1.8", features = ["v4", "serde"] }
+time = { version = "0.3", features = ["serde", "formatting", "parsing"] }
+chrono = { version = "0.4", features = ["serde"] }
+serde_yaml = "0.9"
+rand = "0.9"
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

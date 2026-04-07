@@ -1,4 +1,4 @@
-PROJECTS := py ts
+PROJECTS := py ts rust
 
 .PHONY: help
 help: ## Show this help message
@@ -50,8 +50,8 @@ install-%: ## Install dependencies for the given project
 	@$(MAKE) run-for PROJECT=$(@:install-%=%) CMD=install
 
 .PHONY: dev
-dev: ## Run all development servers in tmux (use ARGS="--kill" to kill session)
-	@./bin/dev $(ARGS)
+dev: ## Run development server for the rust project
+	@$(MAKE) run-for PROJECT=rust CMD=dev
 
 .PHONY: dev-%
 dev-%: ## Run development server for the given project

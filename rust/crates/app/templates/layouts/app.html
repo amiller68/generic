@@ -1,0 +1,76 @@
+{% extends "layouts/base.html" %}
+
+{% block head %}
+<style>
+    uk-icon { display: inline-flex; vertical-align: middle; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 min-h-screen bg-muted border-r flex flex-col">
+        <div class="p-4 flex-1">
+            <!-- Logo -->
+            <div class="flex items-center mb-8">
+                <img src="/static/icon.svg" alt="Icon" class="size-8 mr-3" />
+                <span class="text-xl font-bold">Generic</span>
+            </div>
+
+            <!-- Navigation -->
+            <nav>
+                <a id="nav-widgets" href="/widgets"
+                   class="flex items-center px-3 py-2 rounded-md text-sm hover:bg-accent hover:text-accent-foreground">
+                    <uk-icon icon="package" class="mr-3"></uk-icon>
+                    Widgets
+                </a>
+            </nav>
+        </div>
+
+        <!-- Bottom section: admin + user info -->
+        <div class="p-4 border-t bg-background">
+            {% if is_admin %}
+            <a id="nav-admin" href="/_admin/"
+               class="flex items-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground mb-3">
+                <uk-icon icon="shield" class="mr-2"></uk-icon>
+                Admin
+            </a>
+            {% endif %}
+            <div class="mb-3 text-sm text-muted-foreground px-3">
+                {{ user_email }}
+            </div>
+            <a href="/auth/logout"
+               class="flex items-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                <uk-icon icon="log-out" class="mr-3"></uk-icon>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="flex-1 p-8">
+        <div id="main-content">
+            {{ content|safe }}
+        </div>
+    </main>
+</div>
+
+<!-- Navigation active state script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() { setActiveNav(); });
+    document.body.addEventListener("htmx:afterSettle", function() { setActiveNav(); });
+
+    function setActiveNav() {
+        const path = window.location.pathname;
+        document.querySelectorAll("#nav-widgets").forEach(function(el) {
+            el.classList.remove("uk-active");
+        });
+        document.getElementById("nav-admin")?.classList.remove("text-foreground");
+        if (path.startsWith("/widgets")) {
+            document.getElementById("nav-widgets")?.classList.add("uk-active");
+        } else if (path.startsWith("/_admin")) {
+            document.getElementById("nav-admin")?.classList.add("text-foreground");
+        }
+    }
+</script>
+{% endblock %}

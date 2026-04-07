@@ -1,0 +1,51 @@
+<div class="mb-8">
+    <h1 class="text-3xl font-bold">Widgets</h1>
+    <p class="text-muted-foreground mt-2">{{ widgets.len() }} widget{% if widgets.len() != 1 %}s{% endif %}</p>
+</div>
+
+<div class="flex items-center justify-between mb-6">
+    <div></div>
+    <a href="/widgets/new"
+       hx-get="/widgets/new"
+       hx-target="#main-content"
+       hx-push-url="true"
+       class="uk-button uk-button-primary">
+        <uk-icon icon="plus" class="w-4 h-4 mr-2"></uk-icon>
+        New Widget
+    </a>
+</div>
+
+<div class="uk-card uk-card-default">
+    <div class="overflow-x-auto">
+        <table class="uk-table uk-table-divider uk-table-hover uk-table-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for widget in widgets %}
+                {% include "pages/widgets/row.html" %}
+                {% endfor %}
+                {% if widgets.is_empty() %}
+                <tr>
+                    <td colspan="3" class="text-center py-8 text-muted-foreground">
+                        <uk-icon icon="package" class="w-12 h-12 mb-4 opacity-50"></uk-icon>
+                        <p>No widgets yet. Create your first one!</p>
+                        <a href="/widgets/new"
+                           hx-get="/widgets/new"
+                           hx-target="#main-content"
+                           hx-push-url="true"
+                           class="uk-button uk-button-primary mt-4">
+                            <uk-icon icon="plus" class="w-4 h-4 mr-2"></uk-icon>
+                            New Widget
+                        </a>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
