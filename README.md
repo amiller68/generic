@@ -1,6 +1,6 @@
 # Generic Fullstack
 
-An extensible Docker-based deployment framework for rapidly building and deploying different types of applications with TypeScript and Python.
+An extensible Docker-based deployment framework for rapidly building and deploying different types of applications with TypeScript, Python, and Rust.
 
 **[Live Demo](https://generic.krondor.org)**
 
@@ -42,6 +42,18 @@ See [ts/README.md](./ts/README.md) for details.
 - htmx + Tailwind CSS for responsive UI
 
 See [py/README.md](./py/README.md) for details.
+
+### Rust Stack (`rust/`)
+**Axum + SQLite + HTMX + Apalis**
+
+- Axum web server with server-side rendering
+- SQLite database with SQLx migrations
+- Google OAuth authentication
+- HTMX + Askama templates for responsive UI
+- Apalis background task processing
+- Server-sent events for real-time updates
+
+See [rust/README.md](./rust/README.md) for details.
 
 ### Deployment Framework
 **Terraform + Kamal + 1Password + Digital Ocean**
@@ -124,6 +136,7 @@ See [docs/development/LOCAL.md](./docs/development/LOCAL.md) for detailed develo
 │   ├── modules/          # Reusable Terraform modules
 │   └── stages/           # Stage-specific configs (production, staging)
 ├── py/                   # Python FastAPI application
+├── rust/                 # Rust Axum web server
 ├── ts/                   # TypeScript monorepo (Vite, Express)
 ├── branding/             # Shared brand assets (CSS, icons, fonts)
 ├── docs/                 # Detailed documentation
@@ -238,6 +251,7 @@ make styles             # Build styles for all projects
 Developer Machine
 ├── tmux session (make dev)
 │   ├── Python FastAPI (port 8000)
+│   ├── Rust Axum (port 3000)
 │   ├── TypeScript Vite web (port 5173)
 │   ├── TypeScript Express API (port 3001)
 │   └── Local PostgreSQL (Docker, port 5432)
@@ -281,6 +295,7 @@ Each step is automated and uses secrets from 1Password. No manual credential man
 - [Local Development](./docs/development/LOCAL.md) - Dev environment setup
 - [TypeScript Projects](./ts/README.md) - Vite app, Express API, and monorepo
 - [Python Application](./py/README.md) - FastAPI, database, migrations
+- [Rust Application](./rust/README.md) - Axum, SQLite, background tasks
 
 ### Operations
 - [DevOps Philosophy](./docs/dev-ops/index.md) - Architecture and design decisions
@@ -317,12 +332,6 @@ The TypeScript and Python templates demonstrate two different patterns. You can:
 - Customize deployment configs
 
 ### Planned Extensions
-
-**Rust Stack** (Planned):
-- Axum + htmx web app
-- OIDC authorization
-- SQLX database integration
-- Companion CLI tool
 
 **Python Enhancements**:
 - Redis + background jobs using Arq

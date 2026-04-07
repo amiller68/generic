@@ -1,6 +1,6 @@
 # Project Guide
 
-Extensible Docker-based deployment framework for TypeScript and Python applications.
+Extensible Docker-based deployment framework for TypeScript, Python, and Rust applications.
 
 ## Quick Reference
 
@@ -36,6 +36,9 @@ py/                      # Python FastAPI application
 ├── apps/py-app/         # Main web app with SSR
 └── packages/py-core/    # Shared Python package
 
+rust/                    # Rust Axum web server
+└── crates/app/          # Axum + SQLite + HTMX + Apalis
+
 ts/                      # TypeScript monorepo (pnpm + Turbo)
 ├── apps/web/            # Vite + React frontend
 ├── apps/api/            # Express API server
@@ -63,6 +66,7 @@ Track work items in `issues/`. See `issues/README.md` for the convention.
 ## Constraints
 
 - Python 3.12+ with uv package manager
+- Rust stable with cargo
 - Node.js 20.x with pnpm 9.x
 - TypeScript strict mode enabled
 - All code must pass CI checks before merge
