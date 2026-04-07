@@ -1,5 +1,5 @@
 # Build stage
-FROM rust:1.85-slim AS builder
+FROM rust:1.89-slim AS builder
 
 WORKDIR /build
 
@@ -7,9 +7,9 @@ WORKDIR /build
 RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 
 # Copy manifests first for layer caching
-COPY Cargo.toml Cargo.lock ./
-COPY crates/app/Cargo.toml crates/app/
-COPY crates/app/build.rs crates/app/
+COPY rust/Cargo.toml rust/Cargo.lock ./
+COPY rust/crates/app/Cargo.toml crates/app/
+COPY rust/crates/app/build.rs crates/app/
 
 # Create dummy src for dependency caching
 RUN mkdir -p crates/app/src crates/app/bin && \
@@ -20,11 +20,11 @@ RUN mkdir -p crates/app/src crates/app/bin && \
     cargo build --release 2>/dev/null || true
 
 # Copy real source (templates and static are compiled into the binary)
-COPY crates/app/src crates/app/src
-COPY crates/app/bin crates/app/bin
-COPY crates/app/templates crates/app/templates
-COPY crates/app/static crates/app/static
-COPY crates/app/migrations crates/app/migrations
+COPY rust/crates/app/src crates/app/src
+COPY rust/crates/app/bin crates/app/bin
+COPY rust/crates/app/templates crates/app/templates
+COPY rust/crates/app/static crates/app/static
+COPY rust/crates/app/migrations crates/app/migrations
 
 # Build for real
 RUN cargo build --release

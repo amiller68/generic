@@ -18,8 +18,8 @@ registry:
     - DOCKER_HUB_TOKEN
 
 builder:
-  dockerfile: Dockerfile
-  context: "rust"
+  dockerfile: rust/Dockerfile
+  context: "."
   arch: amd64
 
 proxy:
@@ -38,4 +38,3 @@ env:
   secret:
     - GOOGLE_O_AUTH_CLIENT_ID
     - GOOGLE_O_AUTH_CLIENT_SECRET
-    - SERVICE_SECRET

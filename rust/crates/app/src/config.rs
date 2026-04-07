@@ -48,8 +48,16 @@ impl Config {
         let google_client_secret = std::env::var("GOOGLE_O_AUTH_CLIENT_SECRET")
             .map_err(|_| ConfigError::MissingEnv("GOOGLE_O_AUTH_CLIENT_SECRET".into()))?;
 
-        let service_secret =
-            std::env::var("SERVICE_SECRET").unwrap_or_else(|_| "dev-secret-change-me".to_string());
+        let service_secret = std::env::var("SERVICE_SECRET").unwrap_or_else(|_| {
+            use rand::Rng;
+            let secret: String = rand::rng()
+                .sample_iter(&rand::distr::Alphanumeric)
+                .take(64)
+                .map(char::from)
+                .collect();
+            tracing::info!("No SERVICE_SECRET set, generated random secret");
+            secret
+        });
 
         Ok(Self {
             listen_address,

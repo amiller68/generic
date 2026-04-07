@@ -735,6 +735,7 @@ dependencies = [
  "http",
  "jsonwebtoken",
  "mime_guess",
+ "rand 0.9.2",
  "reqwest",
  "rust-embed",
  "serde",
