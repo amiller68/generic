@@ -428,7 +428,7 @@ jobs:
       - name: Build Docker image (rust)
         uses: docker/build-push-action@v5
         with:
-          context: rust
+          context: .
           file: rust/Dockerfile
           push: false
           tags: generic-rust:ci
